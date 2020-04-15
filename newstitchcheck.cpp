@@ -1,7 +1,7 @@
 #include "newstitchcheck.h"
 #include "exception"
 #define GOODMATCHNUMBER 20
-#define n_max 1000;
+#define n_max 640;
 
 
 class MyPoint
@@ -159,23 +159,19 @@ int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
+        Corner c;
+        calculatecorners(c, basedata.image, hmdata.homo);
+        result.homo = hmdata.homo;
+        result.corner = vector<Point2f>({Point2f(c.ltop.x, c.ltop.y), Point2f(c.lbottom.x, c.lbottom.y),
+                                         Point2f(c.rbottom.x, c.rbottom.y), Point2f(c.rtop.x, c.rtop.y)});
+
         if (lastmatchpoints.size() >= match_num1 && lastmatchpoints.size() < match_num2) {
             result.direction_status = 1;
-            auto *c = new Corner();
-            calculatecorners(*c, basedata.image, hmdata.homo);
-            result.homo = hmdata.homo;
-            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y),
-                                             Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
             return 0;
         }
 
         if (lastmatchpoints.size() >= match_num2) {
             result.direction_status = 2;
-            auto *c = new Corner();
-            calculatecorners(*c, basedata.image, hmdata.homo);
-            result.homo = hmdata.homo;
-            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y),
-                                             Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
             return 0;
         }
     }
