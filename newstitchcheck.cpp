@@ -120,18 +120,21 @@ int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int
 {
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-    try {
+//    try {
         featuredata checkdata;
         vector<KeyPoint> keypoints;
         Mat descriptors;
-        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+
         LoadImage(checkdata.image, image, direction, cutsize, compression_ratio);
         f2d->detectAndCompute(checkdata.image, noArray(), checkdata.keypoints, checkdata.descriptors);
         if (checkdata.keypoints.size() < match_num1) {
             return 0;
         }
-        //    BFMatcher matcher;
-        FlannBasedMatcher matcher;
+
+        BFMatcher matcher;
+//        FlannBasedMatcher matcher;
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
@@ -174,11 +177,11 @@ int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int
             result.direction_status = 2;
             return 0;
         }
-    }
-    catch (...) {
-        result.direction_status = -1;
-        return 0;
-    }
+//    }
+//    catch (...) {
+//        result.direction_status = -1;
+//        return 0;
+//    }
 }
 
 int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsize, double compression_ratio)
@@ -220,9 +223,9 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
         vector<KeyPoint> *keypoints = new vector<KeyPoint>;
         Mat *descriptors = new Mat();
 
-        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(100, 1, 1, false, true);
-//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
 
         f2d->detectAndCompute(*M, noArray(), *keypoints, *descriptors);
 
