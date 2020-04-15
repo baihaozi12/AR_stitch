@@ -116,11 +116,11 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     return 0;
 }
 
-int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
+int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
 {
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-//    try {
+    try {
         featuredata checkdata;
         vector<KeyPoint> keypoints;
         Mat descriptors;
@@ -177,11 +177,11 @@ int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int
             result.direction_status = 2;
             return 0;
         }
-//    }
-//    catch (...) {
-//        result.direction_status = -1;
-//        return 0;
-//    }
+    }
+    catch (...) {
+        result.direction_status = -1;
+        return 0;
+    }
 }
 
 int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsize, double compression_ratio)
@@ -245,87 +245,6 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
     }
     catch (...) { return 0; }
 }
-
-
-int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
-{
-    try {
-        featuredata *checkdata = new featuredata();
-        getfeaturedata(*checkdata, image, direction, cutsize, compression_ratio);//获取检测图特征信息
-
-        if ((*checkdata).keypoints.size() < match_num1) {
-            result.direction_status = -1;
-            result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-            checkdata->descriptors.release();
-            checkdata->image.release();
-            checkdata->keypoints.clear();
-            delete checkdata;
-            return 0;
-        }
-
-        vector<DMatch> *goodmatchpoints = new vector<DMatch>;
-        get_good_match_point(*goodmatchpoints, basedata.descriptors, (*checkdata).descriptors);//筛选匹配点
-
-        homoandmask *hmdata = new homoandmask;
-        gethomoandmask_v2(*hmdata, basedata.keypoints, (*checkdata).keypoints, *goodmatchpoints, direction, image, cutsize, match_num1);//计算单应性矩阵
-
-        vector<DMatch> *lastmatchpoints = new vector<DMatch>;
-        //        vector<Point2f> *ImagePoints1 = new vector<Point2f>, *ImagePoints2 = new vector<Point2f>;
-        //计算最后匹配上的点的数量
-        for (size_t i = 0; i < (*hmdata).mask.size(); i++) {
-            if ((*hmdata).mask[i] != (uchar)0) {
-                (*lastmatchpoints).push_back((*goodmatchpoints)[i]);
-            }
-        }
-
-        result.direction_status = 0;
-        if ((*lastmatchpoints).size() < match_num1) {
-            result.direction_status = 0;;
-        }
-
-        if ((*lastmatchpoints).size() >= match_num1 && (*lastmatchpoints).size() < match_num2) {
-            result.direction_status = 1;
-            Corner *c = new Corner();
-            calculatecorners(*c, basedata.image, hmdata->homo);
-
-//            cv::imshow("basedata.image", basedata.image);
-//            cv::waitKey(0);
-
-            result.homo = hmdata->homo;
-            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y), Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
-        }
-
-        if ((*lastmatchpoints).size() >= match_num2) {
-            result.direction_status = 2;
-            Corner *c = new Corner();
-            calculatecorners(*c, basedata.image, hmdata->homo);
-
-//            cv::imshow("basedata.image", basedata.image);
-//            cv::waitKey(0);
-
-            result.homo = hmdata->homo;
-            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y), Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
-        }
-
-        (*hmdata).homo.copyTo(result.homo);
-        if (result.direction_status < 1) { result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0); }
-        checkdata->descriptors.release();
-        checkdata->image.release();
-        checkdata->keypoints.clear();
-        delete checkdata;
-        hmdata->mask.clear();
-        hmdata->homo.release();
-        delete hmdata;
-        (*goodmatchpoints).clear();
-        delete goodmatchpoints;
-        return 1;
-    }
-    catch (...) {
-        result.direction_status = -1;;
-        return 0;
-    }
-}
-
 
 
 int checkimage(imagestatus &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio)

@@ -96,20 +96,8 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image);
 */
 
 
+
 int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2);
-/*
-// 检查图片状态
-. @param basedata 输入基准图片信息
-. @param image 输入待检测图片
-. @param direction 检测区域 0左 1右 2上 3下
-. @param cutsize 区域大小
-. @param compression_ratio 压缩比例
-. @match_num1：匹配点个数阈值1
-. @match_num1：匹配点个数阈值2
-*/
-
-
-int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2);
 /*
 // 检查图片状态
 . @param basedata 输入基准图片信息
