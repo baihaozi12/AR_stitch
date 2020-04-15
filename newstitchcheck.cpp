@@ -1,7 +1,7 @@
 #include "newstitchcheck.h"
 #include "exception"
 #define GOODMATCHNUMBER 20
-#define n_max 1000;
+#define n_max 480;
 
 
 class MyPoint
