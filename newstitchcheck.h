@@ -109,6 +109,19 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 */
 
 
+int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2);
+/*
+// 检查图片状态
+. @param basedata 输入基准图片信息
+. @param image 输入待检测图片
+. @param direction 检测区域 0左 1右 2上 3下
+. @param cutsize 区域大小
+. @param compression_ratio 压缩比例
+. @match_num1：匹配点个数阈值1
+. @match_num1：匹配点个数阈值2
+*/
+
+
 int checkimage(imagestatus &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio);
 /*
 // 检查图片状态
@@ -197,6 +210,21 @@ int gethomoandmask_v2(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
 . @param GoodMatchePoints 匹配点关系信息
 . @param direction 方向 0切割左边 1切割右边 2切割上边 3切割下边
 . @param image 当前图片
+. @cutsize 切割比例
+. @match_num 匹配点个数阈值
+. @return homoandmask
+*/
+
+
+int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<KeyPoint> &keyPts2, vector<DMatch> &GoodMatchePoints, int direction, int h, int w, double cutsize, int match_num);
+/*
+// 根据计算单应性矩阵获取匹配点
+. @param keyPts1 特征图1
+. @param keyPts2 特征图2
+. @param GoodMatchePoints 匹配点关系信息
+. @param direction 方向 0切割左边 1切割右边 2切割上边 3切割下边
+. @param h 当前图片的rows
+. @param w 当前图片的cols
 . @cutsize 切割比例
 . @match_num 匹配点个数阈值
 . @return homoandmask

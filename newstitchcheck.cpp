@@ -1,7 +1,189 @@
 #include "newstitchcheck.h"
 #include "exception"
 #define GOODMATCHNUMBER 20
+#define n_max 1000;
 
+
+class MyPoint
+{
+public:
+    double x, y, z;
+    MyPoint(double x=0.0, double y=0.0, double z=1.0)
+    {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
+    void calculatenewpoint(Mat& H)
+    {
+        Mat point_old = (Mat_<double>(3, 1) << this->x, this->y, this->z);
+        Mat point_new = H * point_old;
+        point_new /= point_new.at<double>(2, 0);
+        this->x = point_new.at<double>(0, 0);
+        this->y = point_new.at<double>(1, 0);
+        this->z = point_new.at<double>(2, 0);
+    }
+};
+
+
+class Corner
+{
+public:
+    MyPoint ltop;
+    MyPoint lbottom;
+    MyPoint rtop;
+    MyPoint rbottom;
+
+    void calculatefromimage(Mat& img)
+    {
+        int rows = img.rows;
+        int cols = img.cols;
+        this->ltop.x = 0.0;
+        this->ltop.y = 0.0;
+        this->lbottom.x = 0.0;
+        this->lbottom.y = float(rows);
+        this->rtop.x = float(cols);
+        this->rtop.y = 0.0;
+        this->rbottom.x = float(cols);
+        this->rbottom.y = float(rows);
+    }
+
+    void calculatefromhomo(Mat& H)
+    {
+        this->ltop.calculatenewpoint(H);
+        this->lbottom.calculatenewpoint(H);
+        this->rtop.calculatenewpoint(H);
+        this->rbottom.calculatenewpoint(H);
+    }
+
+};
+
+
+int calculatecorners(Corner& c, Mat& img, Mat& H) {
+    c.calculatefromimage(img);
+    c.calculatefromhomo(H);
+    return 0;
+}
+
+
+int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<KeyPoint> &keyPts2, vector<DMatch> &GoodMatchePoints, int direction, int h_, int w_, double cutsize, int match_num)
+{
+    result.mask.clear();
+    vector<Point2f> imagePoints1, imagePoints2;
+    double ratio;
+    double delta = 0;
+    if (direction == 0 or direction == 1) {
+        ratio = (double)(h_) / n_max;
+        int w = (int)(w_ / ratio);
+        delta = w * (1 - cutsize);
+    } else {
+        ratio = (double)(w_) / n_max;
+        int h = (int)(h_ / ratio);
+        delta = h * (1 - cutsize);
+    }
+    if (GoodMatchePoints.size() < match_num) { return 1; }
+    for (auto & GoodMatchePoint : GoodMatchePoints) {
+        Point2f pt1 = keyPts1[GoodMatchePoint.queryIdx].pt;
+        Point2f pt2 = keyPts2[GoodMatchePoint.trainIdx].pt;
+        if (direction == 0) {
+            pt1.x += delta;
+        } else if (direction == 1) {
+            pt2.x += delta;
+        } else if (direction == 2) {
+            pt1.y += delta;
+        } else if (direction == 3) {
+            pt2.y += delta;
+        }
+        pt1.x = pt1.x * ratio;
+        pt1.y = pt1.y * ratio;
+        pt2.x = pt2.x * ratio;
+        pt2.y = pt2.y * ratio;
+
+        imagePoints1.push_back(pt1);
+        imagePoints2.push_back(pt2);
+    }
+    if (imagePoints1.size() != imagePoints2.size() && imagePoints1.size() < match_num && imagePoints2.size() < match_num) {
+        return 1;
+    }
+    vector<uchar> mask;
+    Mat homo = (Mat_<double>(2, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 5.0, mask);
+    if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
+        result.homo = homo;
+    }
+    result.mask = mask;
+    return 0;
+}
+
+int check_image_v3(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
+{
+    result.direction_status = 0;
+    result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+    try {
+        featuredata checkdata;
+        vector<KeyPoint> keypoints;
+        Mat descriptors;
+        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+        LoadImage(checkdata.image, image, direction, cutsize, compression_ratio);
+        f2d->detectAndCompute(checkdata.image, noArray(), checkdata.keypoints, checkdata.descriptors);
+        if (checkdata.keypoints.size() < match_num1) {
+            return 0;
+        }
+        //    BFMatcher matcher;
+        FlannBasedMatcher matcher;
+        vector<vector<DMatch>> matchePoints12;
+        vector<DMatch> goodmatchpoints;
+        if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
+            return 0;
+        }
+        matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 2);
+        for (size_t i = 0; i < matchePoints12.size(); i++) {
+            if (matchePoints12[i][0].distance < 0.75 * matchePoints12[i][1].distance) {
+                goodmatchpoints.push_back(matchePoints12[i][0]);
+            }
+        }
+
+        homoandmask hmdata;
+        gethomoandmask_v3(hmdata, basedata.keypoints, checkdata.keypoints, goodmatchpoints, direction, image.rows,
+                          image.cols, cutsize, match_num1);//计算单应性矩阵
+
+        vector<DMatch> lastmatchpoints;
+        for (size_t i = 0; i < hmdata.mask.size(); i++) {
+            if (hmdata.mask[i] != (uchar) 0) {
+                lastmatchpoints.push_back(goodmatchpoints[i]);
+            }
+        }
+
+        if (lastmatchpoints.size() < match_num1) {
+            return 0;
+        }
+
+        if (lastmatchpoints.size() >= match_num1 && lastmatchpoints.size() < match_num2) {
+            result.direction_status = 1;
+            auto *c = new Corner();
+            calculatecorners(*c, basedata.image, hmdata.homo);
+            result.homo = hmdata.homo;
+            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y),
+                                             Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
+            return 0;
+        }
+
+        if (lastmatchpoints.size() >= match_num2) {
+            result.direction_status = 2;
+            auto *c = new Corner();
+            calculatecorners(*c, basedata.image, hmdata.homo);
+            result.homo = hmdata.homo;
+            result.corner = vector<Point2f>({Point2f(c->ltop.x, c->ltop.y), Point2f(c->lbottom.x, c->lbottom.y),
+                                             Point2f(c->rbottom.x, c->rbottom.y), Point2f(c->rtop.x, c->rtop.y)});
+            return 0;
+        }
+    }
+    catch (...) {
+        result.direction_status = -1;
+        return 0;
+    }
+}
 
 int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsize, double compression_ratio)
 {
@@ -15,13 +197,6 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
             return 0;
         }
         LoadImage(*image_, image, direction, cutsize, compression_ratio);
-//        cout << image.rows << " " << image.cols << endl;
-//        cout << (*image_).rows << " " << (*image_).cols << endl;
-
-
-//        cv::imshow("*image_", *image_);
-//        cv::waitKey(0);
-
         get_keypoints_and_descriptors(result, *image_);
         result.image = image;
 
@@ -29,13 +204,7 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
         delete image_;
         return 1;
     }
-    catch (exception)
-    {
-        (*image_).release();
-        delete image_;
-        return 0;
-    }
-    catch (Exception)
+    catch (...)
     {
         (*image_).release();
         delete image_;
@@ -75,105 +244,15 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
         f2d->clear();
         return 1;
     }
-    catch (exception) { return 0; }
-    catch (Exception) { return 0; }
+    catch (...) { return 0; }
 }
-
-
-class MyPoint
-{
-public:
-    double x, y, z;
-    MyPoint(double x=0.0, double y=0.0, double z=1.0)
-    {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-    }
-    void calculatenewpoint(Mat& H)
-    {
-//        vector<double> *v = new vector<double>({this->x, this->y, this-> z});
-//        Mat mat = cv::Mat(*v).clone();
-//        Mat point_old = mat.reshape(0, 3);
-
-        Mat point_old = (Mat_<double>(3, 1) << this->x, this->y, this->z);
-        Mat point_new = H * point_old;
-        point_new /= point_new.at<double>(2, 0);
-        this->x = point_new.at<double>(0, 0);
-        this->y = point_new.at<double>(1, 0);
-        this->z = point_new.at<double>(2, 0);
-//        cout << "------" << endl;
-//        cout << point_old << endl;
-//        cout << point_new << endl;
-//        cout << this->x << endl;
-//        cout << this->y << endl;
-//        cout << this->z << endl;
-    }
-};
-
-
-class Corner
-{
-public:
-    MyPoint ltop;
-    MyPoint lbottom;
-    MyPoint rtop;
-    MyPoint rbottom;
-
-    void calculatefromimage(Mat& img)
-    {
-        int rows = img.rows;
-        int cols = img.cols;
-        this->ltop.x = 0.0;
-        this->ltop.y = 0.0;
-        this->lbottom.x = 0.0;
-        this->lbottom.y = float(rows);
-        this->rtop.x = float(cols);
-        this->rtop.y = 0.0;
-        this->rbottom.x = float(cols);
-        this->rbottom.y = float(rows);
-    }
-
-    void calculatefromhomo(Mat& H)
-    {
-        this->ltop.calculatenewpoint(H);
-        this->lbottom.calculatenewpoint(H);
-        this->rtop.calculatenewpoint(H);
-        this->rbottom.calculatenewpoint(H);
-
-//        cout << "@@@@@@@@@@@@@@" << endl;
-//        cout << this->ltop.x << endl;
-//        cout << this->ltop.y << endl;
-//        cout << this->lbottom.x << endl;
-//        cout << this->lbottom.y << endl;
-//
-//        cout << this->rtop.x << endl;
-//        cout << this->rtop.y << endl;
-//        cout << this->rbottom.x << endl;
-//        cout << this->rbottom.y << endl;
-
-
-
-    }
-
-};
-
-
-int calculatecorners(Corner& c, Mat& img, Mat& H) {
-    c.calculatefromimage(img);
-    c.calculatefromhomo(H);
-    return 0;
-}
-
 
 
 int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
 {
-    Mat *image_ = new Mat();
-    image.copyTo(*image_);
     try {
         featuredata *checkdata = new featuredata();
-        getfeaturedata(*checkdata, *image_, direction, cutsize, compression_ratio);//获取检测图特征信息
+        getfeaturedata(*checkdata, image, direction, cutsize, compression_ratio);//获取检测图特征信息
 
         if ((*checkdata).keypoints.size() < match_num1) {
             result.direction_status = -1;
@@ -182,8 +261,6 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             checkdata->image.release();
             checkdata->keypoints.clear();
             delete checkdata;
-            (*image_).release();
-            delete image_;
             return 0;
         }
 
@@ -191,7 +268,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         get_good_match_point(*goodmatchpoints, basedata.descriptors, (*checkdata).descriptors);//筛选匹配点
 
         homoandmask *hmdata = new homoandmask;
-        gethomoandmask_v2(*hmdata, basedata.keypoints, (*checkdata).keypoints, *goodmatchpoints, direction, *image_, cutsize, match_num1);//计算单应性矩阵
+        gethomoandmask_v2(*hmdata, basedata.keypoints, (*checkdata).keypoints, *goodmatchpoints, direction, image, cutsize, match_num1);//计算单应性矩阵
 
         vector<DMatch> *lastmatchpoints = new vector<DMatch>;
         //        vector<Point2f> *ImagePoints1 = new vector<Point2f>, *ImagePoints2 = new vector<Point2f>;
@@ -240,22 +317,12 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         hmdata->mask.clear();
         hmdata->homo.release();
         delete hmdata;
-        (*image_).release();
-        delete image_;
         (*goodmatchpoints).clear();
         delete goodmatchpoints;
         return 1;
     }
-    catch (exception) {
-        result.direction_status = result.direction_status = -1;;
-        (*image_).release();
-        delete image_;
-        return 0;
-    }
-    catch (Exception) {
-        result.direction_status = result.direction_status = -1;;
-        (*image_).release();
-        delete image_;
+    catch (...) {
+        result.direction_status = -1;;
         return 0;
     }
 }
@@ -499,8 +566,7 @@ int cutimage(Mat& result, Mat& image, int xmin, int ymin, int xmax, int ymax)
         (image(rect)).copyTo(result);
         return 1;
     }
-    catch (exception) { return 0; }
-    catch (Exception) { return 0; }
+    catch (...) { return 0; }
 }
 
 
@@ -509,8 +575,6 @@ int LoadImage(Mat& result, Mat& image, int direction, double cutsize, double com
     try {
         int c = image.cols;
         int r = image.rows;
-
-        const int n_max = 480;
         int cols;
         int rows;
         if (direction == 0 || direction == 1)
@@ -569,15 +633,14 @@ int LoadImage(Mat& result, Mat& image, int direction, double cutsize, double com
         }
         return 1;
     }
-    catch (exception) { return 0; }
-    catch (Exception) { return 0; }
+    catch (...) { return 0; }
 }
 
 
 int get_good_match_point(vector<DMatch> &result, Mat& descriptors1, Mat& descriptors2)
 {
     result.clear();
-    try {
+        try {
         BFMatcher *matcher = new BFMatcher;
         //        FlannBasedMatcher *matcher = new FlannBasedMatcher();
         vector<vector<DMatch>> matchePoints12;
@@ -595,8 +658,7 @@ int get_good_match_point(vector<DMatch> &result, Mat& descriptors1, Mat& descrip
         matchePoints12.clear();
         return 1;
     }
-    catch (exception) { return 0; }
-    catch (Exception) { return 0; }
+    catch (...) { return 0; }
 }
 
 
@@ -605,11 +667,8 @@ int gethomoandmask_v2(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     result.mask.clear();
     try {
         vector<Point2f> *imagePoints1 = new vector<Point2f>, *imagePoints2 = new vector<Point2f>;
-
         int h_ = image.rows;
         int w_ = image.cols;
-        int n_max = 480;
-
         double ratio;
         double delta = 0;
         if (direction == 0 or direction == 1) {
@@ -743,10 +802,9 @@ int gethomoandmask(homoandmask &result, vector<KeyPoint> &keyPts1, vector<KeyPoi
         delete imagePoints1;
         (*imagePoints2).clear();
         delete imagePoints2;
+        return 1;
     }
-    catch (exception) { return 0; }
-    catch (Exception) { return 0; }
-    return 1;
+    catch (...) { return 0; }
 }
 
 
