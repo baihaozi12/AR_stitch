@@ -1,7 +1,7 @@
 #include "newstitchcheck.h"
 #include "exception"
 #define GOODMATCHNUMBER 20
-#define n_max 480;
+#define n_max 1000;
 
 
 class MyPoint
@@ -125,7 +125,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         vector<KeyPoint> keypoints;
         Mat descriptors;
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+        Ptr<AKAZE> f2d = AKAZE::create();
+//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
 
         LoadImage(checkdata.image, image, direction, cutsize, compression_ratio);
         f2d->detectAndCompute(checkdata.image, noArray(), checkdata.keypoints, checkdata.descriptors);
@@ -225,7 +226,8 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
 
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(100, 1, 1, false, true);
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1500);
+        Ptr<AKAZE> f2d = AKAZE::create();
+//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1500);
 
         f2d->detectAndCompute(*M, noArray(), *keypoints, *descriptors);
 
