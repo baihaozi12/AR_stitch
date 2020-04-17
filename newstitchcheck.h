@@ -20,6 +20,7 @@ struct stitch_status
 {
     int direction_status = 0; //方向状态
     /*
+    -2   方向错误
     -1   异常
     0    没有拼接上
     1    能拼接但不够好，需要继续调整（屏幕上是红色的mask)
@@ -97,7 +98,7 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image);
 
 
 
-int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2);
+int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2, double threshold1, double threshold2);
 /*
 // 检查图片状态
 . @param basedata 输入基准图片信息
@@ -107,6 +108,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 . @param compression_ratio 压缩比例
 . @match_num1：匹配点个数阈值1
 . @match_num1：匹配点个数阈值2
+. @threshold1：形变阈值1
+. @threshold2：位置阈值2
 */
 
 

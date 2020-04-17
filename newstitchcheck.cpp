@@ -1,5 +1,6 @@
 #include "newstitchcheck.h"
 #include "exception"
+#include <stdlib.h>
 #define GOODMATCHNUMBER 20
 #define n_max 1000;
 
@@ -116,7 +117,7 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     return 0;
 }
 
-int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2)
+int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2, double threshold1, double threshold2)
 {
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
@@ -176,6 +177,48 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
         if (lastmatchpoints.size() >= match_num2) {
             result.direction_status = 2;
+
+            if (abs(result.corner[0].x - result.corner[2].x) > threshold1 * image.cols ||
+                abs(result.corner[0].y - result.corner[2].y) > threshold1 * image.rows ||
+                abs(result.corner[1].x - result.corner[3].x) > threshold1 * image.cols ||
+                abs(result.corner[1].y - result.corner[3].y) > threshold1* image.rows) {
+                result.direction_status = 1;
+            }
+
+
+            switch (direction) {
+                case 0:
+                    if (abs(result.corner[2].y - float(image.rows)) + abs(result.corner[3].y) > threshold2 * image.rows ||
+                    abs(result.corner[3].x) > float(image.cols) ||
+                    abs(result.corner[2].x) > float(image.cols)) {
+                        result.direction_status = -2;
+                    }
+                    break;
+                case 1:
+                    if (abs(result.corner[1].y - float(image.rows)) + abs(result.corner[0].y) > threshold2 * image.rows ||
+                    abs(result.corner[0].x) < 0 ||
+                    abs(result.corner[1].x) < 0) {
+                        result.direction_status = -2;
+                    }
+                    break;
+                case 2:
+                    if (abs(result.corner[1].x) + abs(result.corner[2].x - float(image.cols)) > threshold2 * image.cols ||
+                    abs(result.corner[1].y) > float(image.rows) ||
+                    abs(result.corner[2].y) > float(image.rows)) {
+                        result.direction_status = -2;
+                    }
+                    break;
+                case 3:
+                    if (abs(result.corner[0].x) + abs(result.corner[3].x - float(image.cols)) > threshold2 * image.cols ||
+                    abs(result.corner[0].y) < 0 ||
+                    abs(result.corner[3].y) < 0) {
+                        result.direction_status = -2;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
             return 0;
         }
     }
