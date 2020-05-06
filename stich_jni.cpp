@@ -59,7 +59,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv 
     }
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jintArray JNICALL
 Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env,
                                                              jobject obj,
                                                              jobject image,
@@ -81,16 +81,38 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
             jint a = -1;
             return a;
         }
-        imagestatus *result = new imagestatus;
+        stitch_status *result = new stitch_status;
         cout<<temp.keypoints.size()<<endl;
 //        LOGE("print %d", temp.keypoints.size());
 //        LOGE("print %lf %lf", temp.keypoints[0].pt.x,temp.keypoints[0].pt.y);
 //        LOGE("print %lf %lf", temp.keypoints[1].pt.x,temp.keypoints[1].pt.y);
 //        LOGE("print %d %d", temp.image.rows,temp.image.cols);
-        checkimage_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 1.5, 0.5);
+        check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 1.5, 0.5);
         (*myimage).release();
         delete myimage;
         jint k=(jint)(*result).direction_status;
+        jintArray kk = env -> NewIntArray(8);
+
+
+
+        vector<jint> p;
+        for (size_t i = 0; i < result->corner.size(); i++) {
+            Point2f pt = result->corner[i];
+//            cout << (int)pt.x << ", " << (int)pt.y << ", ";
+            //kk.((int)pt.x, (int)pt.y);
+            p.push_back((jint)pt.x);
+            p.push_back((jint)pt.y);
+
+        }
+
+        for (size_t i = 0; i < p.size(); i++) {
+            env->SetIntArrayRegion(kk, i, p.size(), p);
+        }
+
+
+
+
+
         delete result;
         return k;
     }
