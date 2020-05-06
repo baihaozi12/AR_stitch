@@ -2,7 +2,7 @@
 #include "exception"
 #include <stdlib.h>
 #define GOODMATCHNUMBER 20
-#define n_max 1000;
+#define n_max 600;
 
 
 class MyPoint
