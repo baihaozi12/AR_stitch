@@ -74,23 +74,16 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         jmethodID getNativeObjAddr = (env)->GetMethodID(jmat, "getNativeObjAddr", "()J");
         jlong getimage = (env)->CallLongMethod(image, getNativeObjAddr, NULL);
         (*(Mat *)getimage).copyTo(*myimage);
-        //LOGE("print %d %d", myimage.rows,myimage.cols);
-        //LOGE("print %d", myimage.channels());
         if ((*myimage).empty())
         {
-            jint a = -1;
-            return a;
+            jintArray kk = env -> NewIntArray(9);
+            return kk;
         }
         stitch_status *result = new stitch_status;
         cout<<temp.keypoints.size()<<endl;
-//        LOGE("print %d", temp.keypoints.size());
-//        LOGE("print %lf %lf", temp.keypoints[0].pt.x,temp.keypoints[0].pt.y);
-//        LOGE("print %lf %lf", temp.keypoints[1].pt.x,temp.keypoints[1].pt.y);
-//        LOGE("print %d %d", temp.image.rows,temp.image.cols);
         check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 1.5, 0.5);
         (*myimage).release();
         delete myimage;
-//        jint k=(jint)(*result).direction_status;
         jintArray kk = env -> NewIntArray(9);
 
         jint p[9];
@@ -103,22 +96,16 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         }
         env->SetIntArrayRegion(kk, 0, 9, p);
         delete result;
+        delete p;
         return kk;
     }
 
-    catch(exception)
+    catch(...)
     {
         LOGE("^&**&^^&*  print checkimage1 ERROR");
         delete myimage;
-        jint a = -1;
-        return a;
-    }
-    catch(Exception)
-    {
-        LOGE("^&**&^^&*  print checkimage2 ERROR");
-        delete myimage;
-        jint a = -1;
-        return a;
+        jintArray kk = env -> NewIntArray(9);
+        return kk;
     }
 }
 }
