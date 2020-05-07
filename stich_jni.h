@@ -17,7 +17,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv 
                                                                  jdouble,
                                                                  jdouble);
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jintArray JNICALL
 Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *,
                                                                      jobject,
                                                                      jobject,
