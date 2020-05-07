@@ -94,15 +94,16 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         jintArray kk = env -> NewIntArray(9);
 
         jint p[9];
-        p.push_back((jint)(*result).direction_status);
+        int count = 0;
+        p[count++] = (jint)(*result).direction_status
         for (size_t i = 0; i < result->corner.size(); i++) {
             Point2f pt = result->corner[i];
-            p.push_back((jint)pt.x);
-            p.push_back((jint)pt.y);
+            p[count++] = (jint)pt.x;
+            p[count++] = (jint)pt.y;
         }
         env->SetIntArrayRegion(kk, 0, 9, p);
         delete result;
-        return k;
+        return kk;
     }
 
     catch(exception)
