@@ -127,7 +127,20 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         Mat descriptors;
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<AKAZE> f2d = AKAZE::create();
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+
+        int step = 10;
+//        vector<KeyPoint> kps;
+        for (int i=step; i<image.rows-step; i+=step)
+        {
+            for (int j=step; j<image.cols-step; j+=step)
+            {
+                // x,y,radius
+//                kps.push_back(KeyPoint(float(j), float(i), float(step)));
+//                keypoints.push_back(KeyPoint(int(j), int(i), int(step)))
+                keypoints.push_back(KeyPoint(float(j), float(i), float(step)));
+            }
+        }
 
         LoadImage(checkdata.image, image, direction, cutsize, compression_ratio);
         f2d->detectAndCompute(checkdata.image, noArray(), checkdata.keypoints, checkdata.descriptors);
@@ -135,8 +148,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-        BFMatcher matcher;
-//        FlannBasedMatcher matcher;
+//        BFMatcher matcher;
+        FlannBasedMatcher matcher;
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
@@ -271,7 +284,18 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(100, 1, 1, false, true);
 //        Ptr<AKAZE> f2d = AKAZE::create();
         Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
-
+        int step = 10;
+//        vector<KeyPoint> kps;
+        for (int i=step; i<image.rows-step; i+=step)
+        {
+            for (int j=step; j<image.cols-step; j+=step)
+            {
+                // x,y,radius
+//                kps.push_back(KeyPoint(float(j), float(i), float(step)));
+//                keypoints.push_back(KeyPoint(int(j), int(i), int(step)))
+                keypoints->push_back(KeyPoint(float(j), float(i), float(step)));
+            }
+        }
         f2d->detectAndCompute(*M, noArray(), *keypoints, *descriptors);
 
         for (size_t i = 0; i < (*keypoints).size(); i++) {

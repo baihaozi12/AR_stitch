@@ -11,8 +11,8 @@ using namespace std;
 
 int main()
 {
-    Mat im0 = imread("/home/nolan/Images/left.jpg");
-    Mat im1 = imread("/home/nolan/Images/right.jpg");
+    Mat im0 = imread("/home/baihao/jpg/1111111/1.jpg");
+    Mat im1 = imread("/home/baihao/jpg/1111111/2.jpg");
 
     if(! im0.data) {
         cout << "read image error" << endl;
