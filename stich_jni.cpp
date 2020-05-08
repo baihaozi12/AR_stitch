@@ -79,6 +79,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
             jintArray kk = env -> NewIntArray(9);
             jint p[9] = {-1, 0, 0, 0, 0, 0, 0, 0, 0};
             env->SetIntArrayRegion(kk, 0, 9, p);
+            //delete []p;
             return kk;
         }
         stitch_status *result = new stitch_status;
@@ -98,6 +99,8 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         }
         env->SetIntArrayRegion(kk, 0, 9, p);
         delete result;
+
+        //delete []p;
         return kk;
     }
 
@@ -108,6 +111,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         jintArray kk = env -> NewIntArray(9);
         jint p[9] = {-1, 0, 0, 0, 0, 0, 0, 0, 0};
         env->SetIntArrayRegion(kk, 0, 9, p);
+        //delete []p;
         return kk;
     }
 }
