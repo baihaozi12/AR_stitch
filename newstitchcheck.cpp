@@ -209,8 +209,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
                     break;
                 case 1:
                     if (abs(result.corner[1].y - float(image.rows)) + abs(result.corner[0].y) > threshold2 * image.rows ||
-                    abs(result.corner[0].x) < 0 ||
-                    abs(result.corner[1].x) < 0) {
+                    result.corner[0].x < 0 ||
+                    result.corner[1].x < 0) {
                         result.direction_status = -2;
                     }
                     break;
@@ -223,8 +223,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
                     break;
                 case 3:
                     if (abs(result.corner[0].x) + abs(result.corner[3].x - float(image.cols)) > threshold2 * image.cols ||
-                    abs(result.corner[0].y) < 0 ||
-                    abs(result.corner[3].y) < 0) {
+                    result.corner[0].y < 0 ||
+                    result.corner[3].y < 0) {
                         result.direction_status = -2;
                     }
                     break;
