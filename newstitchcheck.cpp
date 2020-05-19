@@ -148,8 +148,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-//        BFMatcher matcher;
-        FlannBasedMatcher matcher;
+        BFMatcher matcher;
+//        FlannBasedMatcher matcher;
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
@@ -239,6 +239,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         result.direction_status = -1;
         return 0;
     }
+    return 0;
 }
 
 int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsize, double compression_ratio)
@@ -283,7 +284,7 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(100, 1, 1, false, true);
 //        Ptr<AKAZE> f2d = AKAZE::create();
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
         int step = 10;
 //        vector<KeyPoint> kps;
         for (int i=step; i<image.rows-step; i+=step)
