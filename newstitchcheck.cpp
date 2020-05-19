@@ -125,9 +125,9 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         featuredata checkdata;
         vector<KeyPoint> keypoints;
         Mat descriptors;
-//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(1000);
 //        Ptr<AKAZE> f2d = AKAZE::create();
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
 
         int step = 10;
 //        vector<KeyPoint> kps;
@@ -281,9 +281,9 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
         Mat *descriptors = new Mat();
 
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
-//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(100, 1, 1, false, true);
+        Ptr<Feature2D> f2d = xfeatures2d::SURF::create(1000);
 //        Ptr<AKAZE> f2d = AKAZE::create();
-        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
+//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
         int step = 10;
 //        vector<KeyPoint> kps;
         for (int i=step; i<image.rows-step; i+=step)
