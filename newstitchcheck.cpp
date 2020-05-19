@@ -2,7 +2,7 @@
 #include "exception"
 #include <stdlib.h>
 #define GOODMATCHNUMBER 20
-#define n_max 450;
+#define n_max 600;
 
 
 class MyPoint
@@ -109,7 +109,11 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     vector<uchar> mask;
     Mat homo = (Mat_<double>(2, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 5.0, mask);
+
+//    homo = findFundamentalMat(imagePoints1, imagePoints2, FM_RANSAC, 3, 0.99);
+    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 7.0, mask);
+//    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
+//    cout<<homo1;
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
