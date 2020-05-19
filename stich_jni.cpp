@@ -84,7 +84,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         }
         stitch_status *result = new stitch_status;
         cout<<temp.keypoints.size()<<endl;
-        check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 1.5, 0.5);
+        check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 3, 1.5);
         (*myimage).release();
         delete myimage;
         jintArray kk = env -> NewIntArray(9);
