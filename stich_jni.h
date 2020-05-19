@@ -10,7 +10,7 @@ extern "C"
 {
 
 JNIEXPORT jboolean JNICALL
-Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv *,
+Java_com_trax_jcall_AlgorithmNativeCarrier_getfeaturedata(JNIEnv *,
                                                                  jobject,
                                                                  jobject,
                                                                  jint,
@@ -18,10 +18,14 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv 
                                                                  jdouble);
 
 JNIEXPORT jintArray JNICALL
-Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *,
+Java_com_trax_jcall_AlgorithmNativeCarrier_checkimage(JNIEnv *,
                                                                      jobject,
                                                                      jobject,
                                                                      jint,
                                                                      jdouble,
-                                                                     jdouble);
+                                                                     jdouble,
+                                                                     jint,
+                                                                     jint,
+                                                                     jfloat,
+                                                                     jfloat);
 }

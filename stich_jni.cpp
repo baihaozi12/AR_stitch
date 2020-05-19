@@ -9,7 +9,7 @@ extern "C"
 {
 
 JNIEXPORT jboolean JNICALL
-Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv *env,
+Java_com_trax_jcall_AlgorithmNativeCarrier_getfeaturedata(JNIEnv *env,
                                                                          jobject obj,
                                                                          jobject image,
                                                                          jint direction,
@@ -60,12 +60,16 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_getfeaturedata(JNIEnv 
 }
 
 JNIEXPORT jintArray JNICALL
-Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env,
+Java_com_trax_jcall_AlgorithmNativeCarrier_checkimage(JNIEnv *env,
                                                                      jobject obj,
                                                                      jobject image,
                                                                      jint direction,
                                                                      jdouble cutsize,
-                                                                     jdouble compression_ratio)
+                                                                     jdouble compression_ratio,
+                                                                     jint min_feature_num,
+                                                                     jint perfect_feature_num,
+                                                                     jfloat warp_image_size_scale_threshold,
+                                                                     jfloat direction_threshold)
 {
     Mat *myimage = new Mat;
     try
@@ -84,7 +88,7 @@ Java_com_data100_taskmobile_ui_main_activity_MainActivity_checkimage(JNIEnv *env
         }
         stitch_status *result = new stitch_status;
         cout<<temp.keypoints.size()<<endl;
-        check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, 10, 20, 3, 1.5);
+        check_image_v2(*result, temp, *myimage, (int)direction, (double)cutsize, (double)compression_ratio, (int)min_feature_num, (int)perfect_feature_num, (float)warp_image_size_scale_threshold, (float)direction_threshold);
         (*myimage).release();
         delete myimage;
         jintArray kk = env -> NewIntArray(9);
