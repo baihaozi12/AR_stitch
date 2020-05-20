@@ -129,10 +129,10 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<AKAZE> f2d = AKAZE::create();
 
-        Size target_size;
-        target_size.width = 1080;
-        target_size.height = 1920;
-        resize(image, image, target_size);
+//        Size target_size;
+//        target_size.width = 1080;
+//        target_size.height = 1920;
+//        resize(image, image, target_size);
 
         
         Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
@@ -262,10 +262,10 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
             delete image_;
             return 0;
         }
-        Size target_size;
-        target_size.width = 1080;
-        target_size.height = 1920;
-        resize(image, image, target_size);
+//        Size target_size;
+//        target_size.width = 1080;
+//        target_size.height = 1920;
+//        resize(image, image, target_size);
         LoadImage(*image_, image, direction, cutsize, compression_ratio);
         get_keypoints_and_descriptors(result, *image_);
         result.image = image;
