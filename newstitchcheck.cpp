@@ -126,6 +126,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
     try {
+        Size target_size;
+        target_size.height = 1920;
+        target_size.width = 1080;
+        resize(image,image,target_size);
+
         featuredata checkdata;
         vector<KeyPoint> keypoints;
         Mat descriptors;
@@ -256,6 +261,10 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
             delete image_;
             return 0;
         }
+        Size target_size;
+        target_size.height = 1920;
+        target_size.width = 1080;
+        resize(image,image,target_size);
         LoadImage(*image_, image, direction, cutsize, compression_ratio);
         get_keypoints_and_descriptors(result, *image_);
         result.image = image;
