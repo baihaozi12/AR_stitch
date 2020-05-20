@@ -119,6 +119,7 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
 
 int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2, double threshold1, double threshold2)
 {
+
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
     try {
@@ -127,6 +128,13 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         Mat descriptors;
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<AKAZE> f2d = AKAZE::create();
+
+        Size target_size;
+        target_size.width = 1080;
+        target_size.height = 1920;
+        resize(image, image, target_size);
+
+        
         Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
 
         int step = 10;
@@ -148,8 +156,9 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-        BFMatcher matcher;
-//        FlannBasedMatcher matcher;
+//        BFMatcher matcher;
+        FlannBasedMatcher matcher;
+
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
@@ -253,6 +262,10 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
             delete image_;
             return 0;
         }
+        Size target_size;
+        target_size.width = 1080;
+        target_size.height = 1920;
+        resize(image, image, target_size);
         LoadImage(*image_, image, direction, cutsize, compression_ratio);
         get_keypoints_and_descriptors(result, *image_);
         result.image = image;

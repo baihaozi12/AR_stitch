@@ -11,12 +11,14 @@ using namespace std;
 
 int main()
 {
-    Mat im0 = imread("/home/baihao/jpg/1111111/1.jpg", cv::COLOR_BGR2GRAY);
-    Mat im1 = imread("/home/baihao/jpg/1111111/2.jpg", cv::COLOR_BGR2GRAY);
+    Mat im0 = imread("/home/baihao/jpg/1111111/big/1.jpg", cv::COLOR_BGR2GRAY);
+    Mat im1 = imread("/home/baihao/jpg/1111111/big/2.jpg", cv::COLOR_BGR2GRAY);
 
     if(! im0.data) {
         cout << "read image error" << endl;
     }
+    cout << im0.cols << "   col\n";
+    cout << im0.rows << "   row\n";
     featuredata *basedata = new featuredata();
     getfeaturedata(*basedata, im0, 1, 1, 0.5);
 
@@ -26,7 +28,7 @@ int main()
     stitch_status *result = new stitch_status();
     check_image_v2(*result, *basedata, im1, 0, 1, 0.5, 10, 20, 1.5, 0.5);
     cout << result->direction_status << endl;
-
+    cout << "   " << ", " << result->direction_status << ", ";
     for (size_t i = 0; i < result->corner.size(); i++) {
         Point2f pt = result->corner[i];
         cout << (int)pt.x << ", " << (int)pt.y << ", ";
