@@ -111,7 +111,7 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
 
 
 //    homo = findFundamentalMat(imagePoints1, imagePoints2, FM_RANSAC, 3, 0.99);
-    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 7.0, mask);
+    homo = findHomography(imagePoints1, imagePoints2, RHO, 7.0, mask,3000);
 //    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
 //    cout<<homo1;
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
