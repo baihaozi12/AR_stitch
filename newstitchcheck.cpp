@@ -164,7 +164,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
             return 0;
         }
-        matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 2);
+        matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 5);
         for (size_t i = 0; i < matchePoints12.size(); i++) {
             if (matchePoints12[i][0].distance < 0.75 * matchePoints12[i][1].distance) {
                 goodmatchpoints.push_back(matchePoints12[i][0]);
