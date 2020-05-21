@@ -111,9 +111,11 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
 
 
 //    homo = findFundamentalMat(imagePoints1, imagePoints2, FM_RANSAC, 3, 0.99);
-    homo = findHomography(imagePoints1, imagePoints2, RHO, 7.0, mask,3000);
+    homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RHO, 7.0, mask,3000);
 //    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
 //    cout<<homo1;
+
+
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
@@ -164,7 +166,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
             return 0;
         }
-        matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 5);
+        matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 2);
         for (size_t i = 0; i < matchePoints12.size(); i++) {
             if (matchePoints12[i][0].distance < 0.75 * matchePoints12[i][1].distance) {
                 goodmatchpoints.push_back(matchePoints12[i][0]);
@@ -186,11 +188,27 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-        Corner c;
-        calculatecorners(c, basedata.image, hmdata.homo);
+//        Corner c;
+//        calculatecorners(c, basedata.image, hmdata.homo);
+        vector<Point2f> pointss ;
+
+        pointss.push_back(Point(0,0));
+        pointss.push_back(Point(0,1920));
+        pointss.push_back(Point(1080,1920));
+        pointss.push_back(Point(1080,0));
+
+        Mat output;
+        perspectiveTransform(Mat(pointss), output, hmdata.homo);
+
+//        cout<< "the points is : "<< output <<"  . ";
+
         result.homo = hmdata.homo;
-        result.corner = vector<Point2f>({Point2f(c.ltop.x, c.ltop.y), Point2f(c.lbottom.x, c.lbottom.y),
-                                         Point2f(c.rbottom.x, c.rbottom.y), Point2f(c.rtop.x, c.rtop.y)});
+
+        result.corner = vector<Point2f>({Point2f(int(output.at<float>(0,0)), int(output.at<float>(0,1))), Point2f(int(output.at<float>(1,0)), int(output.at<float>(1,1))),
+                                         Point2f(int(output.at<float>(2,0)), int(output.at<float>(2,1))), Point2f(int(output.at<float>(3,0)), int(output.at<float>(3,1)))});
+
+//        result.corner = vector<Point2f>({Point2f(c.ltop.x, c.ltop.y), Point2f(c.lbottom.x, c.lbottom.y),
+//                                         Point2f(c.rbottom.x, c.rbottom.y), Point2f(c.rtop.x, c.rtop.y)});
 
         if (lastmatchpoints.size() >= match_num1 && lastmatchpoints.size() < match_num2) {
             result.direction_status = 1;
