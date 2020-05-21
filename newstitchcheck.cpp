@@ -109,7 +109,7 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     vector<uchar> mask;
     Mat homo = (Mat_<double>(2, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 5.0, mask);
+    homo = findHomography(imagePoints1, imagePoints2, RHO, 5.0, mask,3000);
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
