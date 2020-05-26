@@ -184,7 +184,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             }
         }
 
-        if (lastmatchpoints.size() < match_num1) {
+        float good_point_percentage = (float)lastmatchpoints.size() / (float)hmdata.mask.size();
+
+
+
+        if (lastmatchpoints.size() < match_num1 ||good_point_percentage  < 0.3) {
             return 0;
         }
 
@@ -209,6 +213,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 //        result.corner = vector<Point2f>({Point2f(c.ltop.x, c.ltop.y), Point2f(c.lbottom.x, c.lbottom.y),
 //                                         Point2f(c.rbottom.x, c.rbottom.y), Point2f(c.rtop.x, c.rtop.y)});
+
 
         if (lastmatchpoints.size() >= match_num1 && lastmatchpoints.size() < match_num2) {
             result.direction_status = 1;
