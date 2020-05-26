@@ -11,7 +11,8 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include <iostream>
 
-
+#include "opencv2/stitching/detail/matchers.hpp"
+#include "opencv2/stitching/detail/motion_estimators.hpp"
 using namespace cv;
 using namespace std;
 
@@ -62,6 +63,7 @@ struct featuredata
     vector<KeyPoint> keypoints;
     Mat descriptors;
     Mat image;
+    cv::detail::ImageFeatures imageFeatures;
 };
 
 

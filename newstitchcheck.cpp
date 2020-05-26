@@ -109,16 +109,35 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     vector<uchar> mask;
     Mat homo = (Mat_<double>(2, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
+    Mat K(Matx33d(
+            2759.48, 0, 1520.69,
+            0, 2764.16, 1006.81,
+            0, 0, 1
+    ));
+
+    double focal_length = 0.5*(K.at<double>(0) + K.at<double>(4));
+    Point2d principle_point(K.at<double>(2), K.at<double>(5));
+
+    Mat E = findEssentialMat(imagePoints1, imagePoints2, focal_length, principle_point, RANSAC, 0.999, 1.0, mask);
+    if (E.empty()) return 0;
 
 //    homo = findFundamentalMat(imagePoints1, imagePoints2, FM_RANSAC, 3, 0.99);
+//    homo =estimateAffine2D(Mat(imagePoints1),Mat(imagePoints2), mask,RANSAC,8,2000);
     homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RHO, 7.0, mask,3000);
 //    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
-//    cout<<homo1;
-
-
+    cout<<homo <<"\n";
+    cout<<E <<"\n";
+    result.homo = homo;
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
+//    cout<<"\n"<<homo<<"\n";
+//    Mat homo_c1 = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+//    Mat R1 = homo_c1(Range(0,3), Range(0,3));
+//    Mat R2 = homo(Range(0,3), Range(0,3));
+//
+//    Mat R_2to1 = R1*R2.t();
+
     result.mask = mask;
     return 0;
 }
@@ -158,6 +177,44 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         if (checkdata.keypoints.size() < match_num1) {
             return 0;
         }
+//
+//        cv::detail::computeImageFeatures(f2d, checkdata.image,checkdata.imageFeatures );
+//
+//        vector<cv::detail::ImageFeatures> features ;
+//
+//        features.push_back(basedata.imageFeatures);
+//        features.push_back(checkdata.imageFeatures);
+//
+//        vector<cv::detail::MatchesInfo> pairwise_matches;
+//        Ptr<cv::detail::FeaturesMatcher>  matcher = makePtr<cv::detail::BestOf2NearestMatcher>(false, 0.3f);
+//        (*matcher)(features, pairwise_matches);
+//        matcher->collectGarbage();
+//
+//        vector<int> indices = cv::detail::leaveBiggestComponent(features, pairwise_matches, 1.f);
+//        if(indices.size() < 2){
+//            return 0;
+//        }
+//        Ptr<cv::detail::Estimator> estimator = makePtr<cv::detail::HomographyBasedEstimator>();
+//        vector<cv::detail::CameraParams> cameras;
+//        if (!(*estimator)(features, pairwise_matches, cameras))
+//        {
+//            return 0;
+//        }
+//        //(6) 创建约束调整器
+//        Ptr<detail::BundleAdjusterBase> adjuster = makePtr<detail::BundleAdjusterRay>();
+//        adjuster->setConfThresh(1.f);
+//        Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
+//        refine_mask(0, 0) = 1;
+//        refine_mask(0, 1) = 1;
+//        refine_mask(0, 2) = 1;
+//        refine_mask(1, 1) = 1;
+//        refine_mask(1, 2) = 1;
+//        adjuster->setRefinementMask(refine_mask);
+//        if (!(*adjuster)(features, pairwise_matches, cameras))
+//        {
+//            // cout << "Camera parameters adjusting failed.\n";
+//            return 1;
+//        }
 
 //        BFMatcher matcher;
         FlannBasedMatcher matcher;
@@ -183,8 +240,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
                 lastmatchpoints.push_back(goodmatchpoints[i]);
             }
         }
-
-        if (lastmatchpoints.size() < match_num1) {
+        float good_point_percentage = (float)lastmatchpoints.size() / (float)hmdata.mask.size();
+        cout <<" lastmatchpoints.size()" << lastmatchpoints.size()  <<" points  \n";
+        cout <<"hmdata.mask.size()" << hmdata.mask.size()  <<" points  \n";
+        cout <<" there are " << good_point_percentage <<" points  \n";
+        if (lastmatchpoints.size() < match_num1 ||good_point_percentage  < 0.5) {
             return 0;
         }
 
@@ -198,6 +258,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         pointss.push_back(Point(1080,0));
 
         Mat output;
+
         perspectiveTransform(Mat(pointss), output, hmdata.homo);
 
 //        cout<< "the points is : "<< output <<"  . ";
@@ -328,6 +389,8 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
             }
         }
         f2d->detectAndCompute(*M, noArray(), *keypoints, *descriptors);
+//        cv::detail::ImageFeatures imageFeatures;
+        cv::detail::computeImageFeatures(f2d,image, result.imageFeatures);
 
         for (size_t i = 0; i < (*keypoints).size(); i++) {
             result.keypoints.push_back((*keypoints)[i]);

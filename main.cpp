@@ -25,6 +25,8 @@ int main()
 
     stitch_status *result = new stitch_status();
     check_image_v2(*result, *basedata, im1, 0, 1, 0.5, 10, 20, 3, 1);
+
+
     cout << result->direction_status << endl;
 
     for (size_t i = 0; i < result->corner.size(); i++) {
