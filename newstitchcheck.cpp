@@ -111,8 +111,9 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
 
 
 //    homo = findFundamentalMat(imagePoints1, imagePoints2, FM_RANSAC, 3, 0.99);
-    homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RHO, 7.0, mask,3000);
-//    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
+//    homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RHO, 7.0, mask,3000);
+    homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RANSAC, 7.0, mask,2000);
+    //    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
 //    cout<<homo1;
 
 
@@ -168,7 +169,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         }
         matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 2);
         for (size_t i = 0; i < matchePoints12.size(); i++) {
-            if (matchePoints12[i][0].distance < 0.75 * matchePoints12[i][1].distance) {
+            if (matchePoints12[i][0].distance < 0.5 * matchePoints12[i][1].distance) {
                 goodmatchpoints.push_back(matchePoints12[i][0]);
             }
         }
@@ -188,7 +189,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
 
-        if (lastmatchpoints.size() < match_num1 ||good_point_percentage  < 0.3) {
+        if (lastmatchpoints.size() < match_num1 || good_point_percentage  < 0.3) {
             return 0;
         }
 
