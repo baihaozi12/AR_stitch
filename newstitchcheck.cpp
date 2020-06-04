@@ -160,8 +160,12 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-//        BFMatcher matcher;
+#ifdef HAVE_OPENCV_FLANN
         FlannBasedMatcher matcher;
+#else
+        BFMatcher matcher;
+#endif
+
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
         if (basedata.descriptors.rows < 1 || checkdata.descriptors.rows < 1) {
