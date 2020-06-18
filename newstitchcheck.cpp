@@ -137,10 +137,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         featuredata checkdata;
         vector<KeyPoint> keypoints;
         Mat descriptors;
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED //使用一个iOS肯定有的宏定义 来判断是否是iOS 或者 安卓
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+#else
         Ptr<Feature2D> f2d = xfeatures2d::SURF::create(1000);
-//        Ptr<AKAZE> f2d = AKAZE::create();
-//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
-
+#endif
         int step = 10;
 //        vector<KeyPoint> kps;
         for (int i=step; i<image.rows-step; i+=step)
@@ -322,11 +323,13 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
         }
         vector<KeyPoint> *keypoints = new vector<KeyPoint>;
         Mat *descriptors = new Mat();
-
-//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED //使用一个iOS肯定有的宏定义 来判断是否是iOS 或者 安卓
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+#else
         Ptr<Feature2D> f2d = xfeatures2d::SURF::create(1000);
+#endif
+//        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
 //        Ptr<AKAZE> f2d = AKAZE::create();
-//        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
         int step = 10;
 //        vector<KeyPoint> kps;
         for (int i=step; i<image.rows-step; i+=step)
