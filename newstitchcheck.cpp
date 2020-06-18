@@ -161,9 +161,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         }
 
 #ifdef HAVE_OPENCV_FLANN
-        FlannBasedMatcher matcher;
+//        FlannBasedMatcher matcher;
+        BFMatcher matcher(NORM_L2);
 #else
-        BFMatcher matcher;
+        BFMatcher matcher(NORM_L2);
+
 #endif
 
         vector<vector<DMatch>> matchePoints12;
