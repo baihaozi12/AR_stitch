@@ -196,13 +196,9 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
 
-        if (good_point_percentage  < 0.4) {
+        if (lastmatchpoints.size() < match_num1 || good_point_percentage  < 0.4) {
             return 0;
         }
-
-//        if (lastmatchpoints.size() < match_num1 || good_point_percentage  < 0.3) {
-//            return 0;
-//        }
 
 //        Corner c;
 //        calculatecorners(c, basedata.image, hmdata.homo);
