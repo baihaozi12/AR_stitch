@@ -181,6 +181,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             }
         }
 
+       
+
         homoandmask hmdata;
         gethomoandmask_v3(hmdata, basedata.keypoints, checkdata.keypoints, goodmatchpoints, direction, image.rows,
                           image.cols, cutsize, match_num1);//计算单应性矩阵
