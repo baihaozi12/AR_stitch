@@ -146,7 +146,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 {
     result.direction_status = 0;
     result.homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-    try {
+
         Size target_size;
         target_size.height = 1920;
         target_size.width = 1080;
@@ -178,45 +178,217 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 //
-//        cv::detail::computeImageFeatures(f2d, checkdata.image,checkdata.imageFeatures );
+        cv::detail::computeImageFeatures(f2d, checkdata.image,checkdata.imageFeatures );
+
+        vector<cv::detail::ImageFeatures> features ;
 //
-//        vector<cv::detail::ImageFeatures> features ;
+        features.push_back(basedata.imageFeatures);
+        features.push_back(checkdata.imageFeatures);
 //
-//        features.push_back(basedata.imageFeatures);
-//        features.push_back(checkdata.imageFeatures);
+        vector<cv::detail::MatchesInfo> pairwise_matches;
+        Ptr<cv::detail::FeaturesMatcher>  matcher_total = makePtr<cv::detail::BestOf2NearestMatcher>(false, 0.3f);
+        (*matcher_total)(features, pairwise_matches);
+        matcher_total->collectGarbage();
 //
-//        vector<cv::detail::MatchesInfo> pairwise_matches;
-//        Ptr<cv::detail::FeaturesMatcher>  matcher = makePtr<cv::detail::BestOf2NearestMatcher>(false, 0.3f);
-//        (*matcher)(features, pairwise_matches);
-//        matcher->collectGarbage();
+        vector<int> indices = cv::detail::leaveBiggestComponent(features, pairwise_matches, 1.f);
+        if(indices.size() < 2){
+            return 0;
+        }
+        Ptr<cv::detail::Estimator> estimator = makePtr<cv::detail::HomographyBasedEstimator>();
+        vector<cv::detail::CameraParams> cameras;
+        if (!(*estimator)(features, pairwise_matches, cameras))
+        {
+            return 0;
+        }
+        //(6) 创建约束调整器
+        Ptr<detail::BundleAdjusterBase> adjuster = makePtr<detail::BundleAdjusterRay>();
+        adjuster->setConfThresh(1.f);
+        Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
+        refine_mask(0, 0) = 1;
+        refine_mask(0, 1) = 1;
+        refine_mask(0, 2) = 1;
+        refine_mask(1, 1) = 1;
+        refine_mask(1, 2) = 1;
+        adjuster->setRefinementMask(refine_mask);
+        for (size_t i = 0; i < cameras.size(); ++i)
+        {
+            Mat R;
+            cameras[i].R.convertTo(R, CV_32F);
+            cameras[i].R = R;
+            // std::cout << "\nInitial camera intrinsics #" << indices[i] + 1 << ":\nK:\n" << cameras[i].K() << "\nR:\n" << cameras[i].R << std::endl;
+        }
+
+        if (!(*adjuster)(features, pairwise_matches, cameras))
+        {
+            // cout << "Camera parameters adjusting failed.\n";
+            return 0;
+        }
 //
-//        vector<int> indices = cv::detail::leaveBiggestComponent(features, pairwise_matches, 1.f);
-//        if(indices.size() < 2){
-//            return 0;
-//        }
-//        Ptr<cv::detail::Estimator> estimator = makePtr<cv::detail::HomographyBasedEstimator>();
-//        vector<cv::detail::CameraParams> cameras;
-//        if (!(*estimator)(features, pairwise_matches, cameras))
+//        vector<UMat> masks(2);
+//
+//        // Preapre images masks
+//        for (int i = 0; i < 2; ++i)
 //        {
-//            return 0;
+//            masks[i].create(image.size(), CV_8U);
+//            masks[i].setTo(Scalar::all(255));
 //        }
-//        //(6) 创建约束调整器
-//        Ptr<detail::BundleAdjusterBase> adjuster = makePtr<detail::BundleAdjusterRay>();
-//        adjuster->setConfThresh(1.f);
-//        Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
-//        refine_mask(0, 0) = 1;
-//        refine_mask(0, 1) = 1;
-//        refine_mask(0, 2) = 1;
-//        refine_mask(1, 1) = 1;
-//        refine_mask(1, 2) = 1;
-//        adjuster->setRefinementMask(refine_mask);
-//        if (!(*adjuster)(features, pairwise_matches, cameras))
+//
+//        Ptr<WarperCreator> warper_creator = makePtr<cv::PlaneWarper>();
+//
+//
+//        Ptr<cv::detail::RotationWarper> warper = warper_creator->create(1);
+//
+//        //! Calculate warped corners/sizes/mask
+//        vector<Mat> images;
+//        images.push_back(checkdata.image);
+//        images.push_back(image);
+//        vector<Point> corners(2);
+//        vector<UMat> masks_warped(2);
+//        vector<UMat> images_warped(2);
+//        vector<Size> sizes(2);
+//        for (int i = 0; i < 2; ++i)
 //        {
-//            // cout << "Camera parameters adjusting failed.\n";
-//            return 1;
+//            Mat_<float> K;
+//            cameras[i].K().convertTo(K, CV_32F);
+//            float swa = (float)1;
+//            K(0, 0) *= swa; K(0, 2) *= swa;
+//            K(1, 1) *= swa; K(1, 2) *= swa;
+//            corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
+//            sizes[i] = images_warped[i].size();
+//            warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]);
 //        }
 
+        cout<< cameras[0].K()<<"\n";
+        cout<< cameras[0].R<<"\n";
+
+    cout<< cameras[1].ppx<<"\n";
+    cout<< cameras[1].ppy<<"\n";
+    cout<< cameras[1].aspect<<"\n";
+        vector<Point2f> input_array_point;
+
+
+
+        Mat first_camera_K;
+        Mat first_camera_R;
+        cameras[0].K().convertTo(first_camera_K, CV_32FC1);
+        cameras[0].R.convertTo(first_camera_R, CV_32FC1);
+        Mat camera_total = first_camera_K * first_camera_R;
+
+//        convertPointsToHomogeneous(input_array_point, output_array_point);
+
+        cout<< camera_total<<"\n";
+
+
+        input_array_point.push_back(Point2f(0,0));
+        input_array_point.push_back(Point2f(0,1920));
+        input_array_point.push_back(Point2f(1080,1920));
+        input_array_point.push_back(Point2f(1080,0));
+
+
+        cv::Point new_lr_point ;
+        Mat output_array_point;
+        convertPointsToHomogeneous(Mat(input_array_point), output_array_point);
+//        cv::undistortPoints(input_array_point,new_lr_point , cameras[0].K(), cameras[0].R, noArray(), noArray())
+        vector<Point3f> outputPoint = vector<Point3f>(output_array_point);
+
+
+//        cout<< outputPoint <<"\n";
 //        BFMatcher matcher;
+
+        Point2f lr_point = input_array_point[0];
+
+        Mat invert_camera0_K;
+        cv::invert(cameras[0].K() ,invert_camera0_K);
+        Mat invert_camera0_R;
+        cv::invert(cameras[0].R ,invert_camera0_R);
+
+        Mat invert_camera1_K;
+        cv::invert(cameras[1].K() ,invert_camera1_K);
+        Mat invert_camera1_R;
+        cv::invert(cameras[1].R ,invert_camera1_R);
+        Mat ori_camera1_K = cameras[1].K();
+        Mat ori_camera1_R = cameras[1].R;
+//        cv::invert(invert_camera1_K ,invert_camera1_K);
+//
+//        cv::invert(invert_camera1_R ,invert_camera1_R);
+
+        Mat invert_camera1_T = cameras[1].t;
+        invert_camera0_K.convertTo(invert_camera0_K,CV_32FC1);
+        invert_camera0_R.convertTo(invert_camera0_R,CV_32FC1);
+        invert_camera1_K.convertTo(invert_camera1_K,CV_32FC1);
+        invert_camera1_R.convertTo(invert_camera1_R,CV_32FC1);
+        ori_camera1_K.convertTo(ori_camera1_K,CV_32FC1);
+        ori_camera1_R.convertTo(ori_camera1_R,CV_32FC1);
+        //        invert_camera1_T.convertTo(invert_camera1_T,CV_32FC1);
+        camera_total =  ori_camera1_K*ori_camera1_R *invert_camera0_R *invert_camera1_K ;
+
+        float camera0_cx = cameras[0].K().at<float>(0,2);
+        float camera0_cy = cameras[0].K().at<float>(1,2);
+        float camera0_fx = cameras[0].K().at<float>(0,0);
+        float camera0_fy = cameras[0].K().at<float>(1,1);
+
+
+        float camera1_cx = cameras[1].K().at<float>(0,2);
+        float camera1_cy = cameras[1].K().at<float>(1,2);
+        float camera1_fx = cameras[1].K().at<float>(0,0);
+        float camera1_fy = cameras[1].K().at<float>(1,1);
+
+        cout << "the t matrix is "<<cameras[0].t<<"\n";
+        Mat ltOutput = Mat(outputPoint[0]).t() *camera_total;
+//        float x_ = (0 - camera0_cx)/camera0_fx;
+//        float y_ = (0 - camera0_cy)/camera0_fy;
+//        Mat x_y_z_ = (cv::Mat_<float>(1, 3) << x_, y_, 1);
+//        Mat x1_y1_z1_ = x_y_z_*invert_camera0_R*ori_camera1_R;
+//
+//        float x1_ = x1_y1_z1_.at<float>(0,0);
+//        float y1_ = x1_y1_z1_.at<float>(0,1);
+//        float z1_ = x1_y1_z1_.at<float>(0,2);
+//
+//        float u1 = camera1_fx*x1_+camera1_cx;
+//        float v1 = camera1_fy*y1_+camera1_cy;
+//        ltOutput.at<float>(0,0) = u1;
+//        ltOutput.at<float>(0,1) = v1;
+        Mat ldOutput = Mat(outputPoint[1]).t() *camera_total;
+        Mat rdOutput = Mat(outputPoint[2]).t() *camera_total;
+        Mat rtOutput = Mat(outputPoint[3]).t() *camera_total;
+//        perspectiveTransform(Mat(outputPoint[0]).t(), ltOutput,camera_total);
+        cout<<ltOutput<<"\n";
+        cout<<ldOutput<<"\n";
+        cout<<rdOutput<<"\n";
+        cout<<rtOutput<<"\n";
+
+        float x = rtOutput.at<float>(0,0);
+        float y = rtOutput.at<float>(0,1);
+//        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<";
+//        cout<<cameras[0].K()<<"\n";
+//        cout<<cameras[1].K()<<"\n";
+        result.corner = vector<Point2f>({Point2f(int(ltOutput.at<float>(0,0)), int(ltOutput.at<float>(0,1))), Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1))),
+                                        Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1))), Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)))});
+
+
+
+        Mat R = cameras[1].R.clone();
+        Point root_points[1][4];
+    //    root_points[0][0] = Point(215,220);
+    //    root_points[0][1] = Point(460,225);
+    //    root_points[0][2] = Point(466,450);
+    //    root_points[0][3] = Point(235,465);
+        root_points[0][0] = Point2f(int(ltOutput.at<float>(0,0)), int(ltOutput.at<float>(0,1)));
+        root_points[0][1] = Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1)));
+        root_points[0][2] = Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1)));
+        root_points[0][3] = Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)));
+
+        const Point* ppt[1] = {root_points[0]};
+        int npt[] = {4};
+
+
+        polylines(image,  ppt, npt, 1, 1, Scalar(0,255,0),1,8,0);
+
+        imwrite("/home/baihao/jpg/result121212.jpg",image);
+
+
+        return 1;
+
         FlannBasedMatcher matcher;
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
@@ -233,6 +405,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         homoandmask hmdata;
         gethomoandmask_v3(hmdata, basedata.keypoints, checkdata.keypoints, goodmatchpoints, direction, image.rows,
                           image.cols, cutsize, match_num1);//计算单应性矩阵
+//        cv::detail::AffineWarper::getRTfromHomogeneous()
+
 
         vector<DMatch> lastmatchpoints;
         for (size_t i = 0; i < hmdata.mask.size(); i++) {
@@ -322,11 +496,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
             return 0;
         }
-    }
-    catch (...) {
-        result.direction_status = -1;
-        return 0;
-    }
+
+
 }
 
 int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsize, double compression_ratio)
