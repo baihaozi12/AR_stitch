@@ -246,4 +246,8 @@ int get_boxdata(boxdata &result, vector<Point2f>& points);
 */
 
 
+void triangulation();
+
+
+
 #endif

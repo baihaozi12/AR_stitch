@@ -322,32 +322,10 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         //        invert_camera1_T.convertTo(invert_camera1_T,CV_32FC1);
         camera_total =  ori_camera1_K*ori_camera1_R *invert_camera0_R *invert_camera1_K ;
 
-        float camera0_cx = cameras[0].K().at<float>(0,2);
-        float camera0_cy = cameras[0].K().at<float>(1,2);
-        float camera0_fx = cameras[0].K().at<float>(0,0);
-        float camera0_fy = cameras[0].K().at<float>(1,1);
 
-
-        float camera1_cx = cameras[1].K().at<float>(0,2);
-        float camera1_cy = cameras[1].K().at<float>(1,2);
-        float camera1_fx = cameras[1].K().at<float>(0,0);
-        float camera1_fy = cameras[1].K().at<float>(1,1);
 
         cout << "the t matrix is "<<cameras[0].t<<"\n";
         Mat ltOutput = Mat(outputPoint[0]).t() *camera_total;
-//        float x_ = (0 - camera0_cx)/camera0_fx;
-//        float y_ = (0 - camera0_cy)/camera0_fy;
-//        Mat x_y_z_ = (cv::Mat_<float>(1, 3) << x_, y_, 1);
-//        Mat x1_y1_z1_ = x_y_z_*invert_camera0_R*ori_camera1_R;
-//
-//        float x1_ = x1_y1_z1_.at<float>(0,0);
-//        float y1_ = x1_y1_z1_.at<float>(0,1);
-//        float z1_ = x1_y1_z1_.at<float>(0,2);
-//
-//        float u1 = camera1_fx*x1_+camera1_cx;
-//        float v1 = camera1_fy*y1_+camera1_cy;
-//        ltOutput.at<float>(0,0) = u1;
-//        ltOutput.at<float>(0,1) = v1;
         Mat ldOutput = Mat(outputPoint[1]).t() *camera_total;
         Mat rdOutput = Mat(outputPoint[2]).t() *camera_total;
         Mat rtOutput = Mat(outputPoint[3]).t() *camera_total;
@@ -1076,4 +1054,25 @@ int get_boxdata(boxdata &result, vector<Point2f>& points)
         result.ymax = MAX(result.ymax, points[i].y);
     }
     return 1;
+}
+
+
+void triangulation(Mat R, Mat t){
+    Mat T1 = (Mat_<double>(3,4)<<
+            1,0,0,0,
+            0,1,0,0,
+            0,0,1,0);
+
+    Mat T2 = (Mat_<double>(3,4)<<
+            R.at<double>(0,0),R.at<double>(0,1),R.at<double>(0,2), t.at<double>(0,0),
+            R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2), t.at<double>(1,0),
+            R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2), t.at<double>(2,0));
+
+    Mat K = ( Mat_<double> ( 3,3 ) << 339.2815377288591, 0, 168.5,
+                                                0, 339.2815377288591, 300,
+                                                0, 0, 1);
+
+
+
+
 }
