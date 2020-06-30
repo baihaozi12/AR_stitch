@@ -204,6 +204,31 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 //        hmdata.homo = homography_dlt(source_point,target_point);
         float good_point_percentage = (float)lastmatchpoints.size() / (float)hmdata.mask.size();
 
+        Mat R,t;
+        cv::Mat K = (cv::Mat_<float>(3,3) <<  500.f,   0.f, image.cols / 2.f,
+                0.f, 500.f, image.rows / 2.f,
+                0.f,   0.f,               1.f);
+        Mat Kd;
+        K.convertTo(Kd, CV_64F);
+        cv::recoverPose(hmdata.homo,
+                        source_point,
+                        target_point,
+                        R, t, Kd.at<double>(0,0),
+                // cv::Point2f(0, 0),
+                        cv::Point2d(image.cols/2., image.rows/2.),
+                        Mat(hmdata.mask));
+
+//        vector<cv::Point2d> triangulation_points1, triangulation_points2;
+//        for(int i = 0; i < Mat(hmdata.mask).rows; i++) {
+//            if(Mat(hmdata.mask).at<unsigned char>(i)){
+//                triangulation_points1.push_back
+//                        (cv::Point2d((double)source_point[i].x,(double)source_point[i].y));
+//                triangulation_points2.push_back
+//                        (cv::Point2d((double)target_point[i].x,(double)target_point[i].y));
+//            }
+//        }
+
+
 
 
         if (lastmatchpoints.size() < match_num1 || good_point_percentage  < 0.4) {
