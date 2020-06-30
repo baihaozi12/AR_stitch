@@ -331,56 +331,56 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         Mat ltOutput = Mat(outputPoint[0]).t() *camera_total;
         cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
 //        cout << "the t matrix is "<<Mat(outputPoint[0]).t()<<"\n";
-        ltOutput = Mat(outputPoint[0]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
-        float focal_x =  cameras[0].K().at<float>(0,0);
-        float focal_y =  cameras[0].K().at<float>(1,1);
+        ltOutput = Mat(outputPoint[0]).t()  * invert_camera0_R * ori_camera1_R;
+//        float focal_x =  cameras[0].K().at<float>(0,0);
+//        float focal_y =  cameras[0].K().at<float>(1,1);
 
-        float c_x =  cameras[0].K().at<float>(0,2);
-        float c_y =  cameras[0].K().at<float>(1,2);
-        float x = ltOutput.at<float>(0,0);
-        float y = ltOutput.at<float>(0,1);
-        float z = ltOutput.at<float>(0,2);
-        float u = x/z * focal_x +c_x;
-        float v = y/z * focal_y +c_y;
-        ltOutput.at<float>(0,0) = u;
-        ltOutput.at<float>(0,1) = v;
-        ltOutput.at<float>(0,2) = 1;
+//        float c_x =  cameras[0].K().at<float>(0,2);
+//        float c_y =  cameras[0].K().at<float>(1,2);
+//        float x = ltOutput.at<float>(0,0);
+//        float y = ltOutput.at<float>(0,1);
+//        float z = ltOutput.at<float>(0,2);
+//        float u = x/z * focal_x +c_x;
+//        float v = y/z * focal_y +c_y;
+//        ltOutput.at<float>(0,0) = u;
+//        ltOutput.at<float>(0,1) = v;
+//        ltOutput.at<float>(0,2) = 1;
         cout << "the t matrix is "<<ltOutput<<"\n";
 
-        Mat ldOutput = Mat(outputPoint[1]).t()*ori_camera1_K * invert_camera0_R * ori_camera1_R;
+        Mat ldOutput = Mat(outputPoint[1]).t() * invert_camera0_R * ori_camera1_R;
 
-        x = ldOutput.at<float>(0,0);
-        y = ldOutput.at<float>(0,1);
-        z = ldOutput.at<float>(0,2);
-        u = x/z * focal_x +c_x;
-        v = y/z * focal_y +c_y;
-        ldOutput.at<float>(0,0) = u;
-        ldOutput.at<float>(0,1) = v;
-        ldOutput.at<float>(0,2) = 1;
+//        x = ldOutput.at<float>(0,0);
+//        y = ldOutput.at<float>(0,1);
+//        z = ldOutput.at<float>(0,2);
+//        u = x/z * focal_x +c_x;
+//        v = y/z * focal_y +c_y;
+//        ldOutput.at<float>(0,0) = u;
+//        ldOutput.at<float>(0,1) = v;
+//        ldOutput.at<float>(0,2) = 1;
         cout << "the t matrix is "<<ldOutput<<"\n";
-        Mat rdOutput = Mat(outputPoint[2]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
+        Mat rdOutput = Mat(outputPoint[2]).t()  * invert_camera0_R * ori_camera1_R;
 
-        x = rdOutput.at<float>(0,0);
-        y = rdOutput.at<float>(0,1);
-        z = rdOutput.at<float>(0,2);
-        u = x/z * focal_x +c_x;
-        v = y/z * focal_y +c_y;
-        rdOutput.at<float>(0,0) = u;
-        rdOutput.at<float>(0,1) = v;
-        rdOutput.at<float>(0,2) = 1;
-        cout << "the t matrix is "<<rdOutput<<"\n";
+//        x = rdOutput.at<float>(0,0);
+//        y = rdOutput.at<float>(0,1);
+//        z = rdOutput.at<float>(0,2);
+//        u = x/z * focal_x +c_x;
+//        v = y/z * focal_y +c_y;
+//        rdOutput.at<float>(0,0) = u;
+//        rdOutput.at<float>(0,1) = v;
+//        rdOutput.at<float>(0,2) = 1;
+//        cout << "the t matrix is "<<rdOutput<<"\n";
 
-        Mat rtOutput = Mat(outputPoint[3]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
+        Mat rtOutput = Mat(outputPoint[3]).t()  * invert_camera0_R * ori_camera1_R;
 
-        x = rtOutput.at<float>(0,0);
-        y = rtOutput.at<float>(0,1);
-        z = rtOutput.at<float>(0,2);
-        u = x/z * focal_x +c_x;
-        v = y/z * focal_y +c_y;
-        rtOutput.at<float>(0,0) = u;
-        rtOutput.at<float>(0,1) = v;
-        rtOutput.at<float>(0,2) = 1;
-        cout << "the t matrix is "<<rtOutput<<"\n";
+//        x = rtOutput.at<float>(0,0);
+//        y = rtOutput.at<float>(0,1);
+//        z = rtOutput.at<float>(0,2);
+//        u = x/z * focal_x +c_x;
+//        v = y/z * focal_y +c_y;
+//        rtOutput.at<float>(0,0) = u;
+//        rtOutput.at<float>(0,1) = v;
+//        rtOutput.at<float>(0,2) = 1;
+//        cout << "the t matrix is "<<rtOutput<<"\n";
 
         cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
 //        Mat ldOutput = Mat(outputPoint[1]).t() *camera_total;
@@ -417,7 +417,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         int npt[] = {4};
 
 
-        polylines(image,  ppt, npt, 1, 1, Scalar(0,255,0),1,8,0);
+        polylines(image,  ppt, npt, 1, 1, Scalar(0,255,0),2,8,0);
 
         imwrite("/home/baihao/jpg/result121212.jpg",image);
 
