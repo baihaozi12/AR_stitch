@@ -264,9 +264,9 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
     cout<< cameras[1].ppx<<"\n";
     cout<< cameras[1].ppy<<"\n";
     cout<< cameras[1].aspect<<"\n";
+//        vector<Point2f> input_array_point;
+
         vector<Point2f> input_array_point;
-
-
 
         Mat first_camera_K;
         Mat first_camera_R;
@@ -292,7 +292,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         vector<Point3f> outputPoint = vector<Point3f>(output_array_point);
 
 
-//        cout<< outputPoint <<"\n";
+        cout<< outputPoint <<"\n";
 //        BFMatcher matcher;
 
         Point2f lr_point = input_array_point[0];
@@ -324,19 +324,76 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
 
+        Mat camera0R = cameras[0].R;
+        camera0R.convertTo(camera0R,CV_32FC1);
+
         cout << "the t matrix is "<<cameras[0].t<<"\n";
         Mat ltOutput = Mat(outputPoint[0]).t() *camera_total;
-        Mat ldOutput = Mat(outputPoint[1]).t() *camera_total;
-        Mat rdOutput = Mat(outputPoint[2]).t() *camera_total;
-        Mat rtOutput = Mat(outputPoint[3]).t() *camera_total;
+        cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+//        cout << "the t matrix is "<<Mat(outputPoint[0]).t()<<"\n";
+        ltOutput = Mat(outputPoint[0]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
+        float focal_x =  cameras[0].K().at<float>(0,0);
+        float focal_y =  cameras[0].K().at<float>(1,1);
+
+        float c_x =  cameras[0].K().at<float>(0,2);
+        float c_y =  cameras[0].K().at<float>(1,2);
+        float x = ltOutput.at<float>(0,0);
+        float y = ltOutput.at<float>(0,1);
+        float z = ltOutput.at<float>(0,2);
+        float u = x/z * focal_x +c_x;
+        float v = y/z * focal_y +c_y;
+        ltOutput.at<float>(0,0) = u;
+        ltOutput.at<float>(0,1) = v;
+        ltOutput.at<float>(0,2) = 1;
+        cout << "the t matrix is "<<ltOutput<<"\n";
+
+        Mat ldOutput = Mat(outputPoint[1]).t()*ori_camera1_K * invert_camera0_R * ori_camera1_R;
+
+        x = ldOutput.at<float>(0,0);
+        y = ldOutput.at<float>(0,1);
+        z = ldOutput.at<float>(0,2);
+        u = x/z * focal_x +c_x;
+        v = y/z * focal_y +c_y;
+        ldOutput.at<float>(0,0) = u;
+        ldOutput.at<float>(0,1) = v;
+        ldOutput.at<float>(0,2) = 1;
+        cout << "the t matrix is "<<ldOutput<<"\n";
+        Mat rdOutput = Mat(outputPoint[2]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
+
+        x = rdOutput.at<float>(0,0);
+        y = rdOutput.at<float>(0,1);
+        z = rdOutput.at<float>(0,2);
+        u = x/z * focal_x +c_x;
+        v = y/z * focal_y +c_y;
+        rdOutput.at<float>(0,0) = u;
+        rdOutput.at<float>(0,1) = v;
+        rdOutput.at<float>(0,2) = 1;
+        cout << "the t matrix is "<<rdOutput<<"\n";
+
+        Mat rtOutput = Mat(outputPoint[3]).t() *ori_camera1_K * invert_camera0_R * ori_camera1_R;
+
+        x = rtOutput.at<float>(0,0);
+        y = rtOutput.at<float>(0,1);
+        z = rtOutput.at<float>(0,2);
+        u = x/z * focal_x +c_x;
+        v = y/z * focal_y +c_y;
+        rtOutput.at<float>(0,0) = u;
+        rtOutput.at<float>(0,1) = v;
+        rtOutput.at<float>(0,2) = 1;
+        cout << "the t matrix is "<<rtOutput<<"\n";
+
+        cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+//        Mat ldOutput = Mat(outputPoint[1]).t() *camera_total;
+//        Mat rdOutput = Mat(outputPoint[2]).t() *camera_total;
+//        Mat rtOutput = Mat(outputPoint[3]).t() *camera_total;
 //        perspectiveTransform(Mat(outputPoint[0]).t(), ltOutput,camera_total);
         cout<<ltOutput<<"\n";
         cout<<ldOutput<<"\n";
         cout<<rdOutput<<"\n";
         cout<<rtOutput<<"\n";
 
-        float x = rtOutput.at<float>(0,0);
-        float y = rtOutput.at<float>(0,1);
+//        float x = rtOutput.at<float>(0,0);
+//        float y = rtOutput.at<float>(0,1);
 //        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<";
 //        cout<<cameras[0].K()<<"\n";
 //        cout<<cameras[1].K()<<"\n";
