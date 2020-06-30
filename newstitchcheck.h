@@ -241,5 +241,5 @@ int get_boxdata(boxdata &result, vector<Point2f>& points);
 . @return boxdata result 边框信息
 */
 
-
+cv::Mat homography_dlt(const std::vector< cv::Point2d > &x1, const std::vector< cv::Point2d > &x2);
 #endif
