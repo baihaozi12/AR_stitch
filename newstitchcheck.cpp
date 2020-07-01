@@ -208,15 +208,15 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         cv::Mat K = (cv::Mat_<float>(3,3) <<  500.f,   0.f, image.cols / 2.f,
                 0.f, 500.f, image.rows / 2.f,
                 0.f,   0.f,               1.f);
-        Mat Kd;
-        K.convertTo(Kd, CV_64F);
-        cv::recoverPose(hmdata.homo,
-                        source_point,
-                        target_point,
-                        R, t, Kd.at<double>(0,0),
-                // cv::Point2f(0, 0),
-                        cv::Point2d(image.cols/2., image.rows/2.),
-                        Mat(hmdata.mask));
+//        Mat Kd;
+//        K.convertTo(Kd, CV_64F);
+//        cv::recoverPose(hmdata.homo,
+//                        source_point,
+//                        target_point,
+//                        R, t, Kd.at<double>(0,0),
+//                // cv::Point2f(0, 0),
+//                        cv::Point2d(image.cols/2., image.rows/2.),
+//                        Mat(hmdata.mask));
 
 //        vector<cv::Point2d> triangulation_points1, triangulation_points2;
 //        for(int i = 0; i < Mat(hmdata.mask).rows; i++) {
