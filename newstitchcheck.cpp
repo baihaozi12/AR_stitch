@@ -290,10 +290,10 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         cv::Point2f  tl  = cv::detail::resultRoi(corners, sizes).tl();
         cv::Point2f  pt = cv::Point2f(dst_pt.x - tl.x, dst_pt.y - tl.y);
         //画个圆显示一下
-        cv::circle(image, dst_pt, 8, colors[0], 12, cv::LINE_AA);
+        cv::circle(image, pt, 8, colors[0], 12, cv::LINE_AA);
         cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
 
-        cout<<"The point is "<<pt<<"    \n";
+        cout<<"The tl is "<<tl<<"    \n";
 
         cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
     cout<< cameras[1].ppx<<"\n";
@@ -432,8 +432,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 //        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<";
 //        cout<<cameras[0].K()<<"\n";
 //        cout<<cameras[1].K()<<"\n";
-        result.corner = vector<Point2f>({Point2f(int(ltOutput.at<float>(0,0)), int(ltOutput.at<float>(0,1))), Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1))),
-                                        Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1))), Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)))});
+        result.corner = vector<Point2f>({Point2f(int(ltOutput.at<float>(0,0) + tl.x), int(ltOutput.at<float>(0,1)+ tl.y)), Point2f(int(ldOutput.at<float>(0,0)- tl.x), int(ldOutput.at<float>(0,1)+ tl.y)),
+                                        Point2f(int(rdOutput.at<float>(0,0)+ tl.x), int(rdOutput.at<float>(0,1)+ tl.y)), Point2f(int(rtOutput.at<float>(0,0)- tl.x), int(rtOutput.at<float>(0,1)+ tl.y))});
 
 
 
@@ -443,10 +443,10 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
     //    root_points[0][1] = Point(460,225);
     //    root_points[0][2] = Point(466,450);
     //    root_points[0][3] = Point(235,465);
-        root_points[0][0] = Point2f(int(ltOutput.at<float>(0,0)), int(ltOutput.at<float>(0,1)));
-        root_points[0][1] = Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1)));
-        root_points[0][2] = Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1)));
-        root_points[0][3] = Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)));
+        root_points[0][0] = Point2f(int(ltOutput.at<float>(0,0)+ tl.x), int(ltOutput.at<float>(0,1)+ tl.y));
+        root_points[0][1] = Point2f(int(ldOutput.at<float>(0,0)+ tl.x), int(ldOutput.at<float>(0,1)+ tl.y));
+        root_points[0][2] = Point2f(int(rdOutput.at<float>(0,0)+ tl.x), int(rdOutput.at<float>(0,1)+ tl.y));
+        root_points[0][3] = Point2f(int(rtOutput.at<float>(0,0)+ tl.x), int(rtOutput.at<float>(0,1)+ tl.y));
 
         const Point* ppt[1] = {root_points[0]};
         int npt[] = {4};
