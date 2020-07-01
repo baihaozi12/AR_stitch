@@ -11,8 +11,8 @@ using namespace std;
 
 int main()
 {
-    Mat im0 = imread("/home/baihao/jpg/1111111/verti3/3_1.jpg", cv::COLOR_BGR2GRAY);
-    Mat im1 = imread("/home/baihao/jpg/1111111/verti3/3_2.jpg", cv::COLOR_BGR2GRAY);
+    Mat im0 = imread("/home/baihao/jpg/1111111/xubo/yongqi.png", cv::COLOR_BGR2GRAY);
+    Mat im1 = imread("/home/baihao/jpg/1111111/xubo/yongqi2.png", cv::COLOR_BGR2GRAY);
 
     if(! im0.data) {
         cout << "read image error" << endl;
