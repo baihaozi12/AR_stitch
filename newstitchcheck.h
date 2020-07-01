@@ -248,6 +248,16 @@ int get_boxdata(boxdata &result, vector<Point2f>& points);
 
 void triangulation();
 
-
+cv::Point2f calcWarpedPoint(
+        const cv::Point2f& pt,
+        InputArray K1,                // Camera K parameter
+        InputArray R1,                // Camera R parameter
+        InputArray K2,                // Camera K parameter
+        InputArray R2,                // Camera R parameter
+        Ptr<cv::detail::RotationWarper> warper,  // The Rotation Warper
+        Point_<int> corners1,
+        Size_<int> sizes1,
+        const std::vector<cv::Point> &corners2,
+        const std::vector<cv::Size> &sizes2);
 
 #endif

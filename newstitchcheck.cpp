@@ -67,6 +67,32 @@ int calculatecorners(Corner& c, Mat& img, Mat& H) {
 }
 
 
+cv::Point2f calcWarpedPoint(
+        const cv::Point2f& pt,
+        InputArray K1,                // Camera K parameter
+        InputArray R1,                // Camera R parameter
+        InputArray K2,                // Camera K parameter
+        InputArray R2,                // Camera R parameter
+        Ptr<cv::detail::RotationWarper> warper,  // The Rotation Warper
+        vector<Point> corners1,
+        vector<Size> sizes1,
+        const std::vector<cv::Point> &corners2,
+        const std::vector<cv::Size> &sizes2)
+{
+    cv::Point2f  dst = warper->warpPoint(pt, K1, R1);
+    cv::Point2f  tl = cv::detail::resultRoi(corners1, sizes1).tl();
+    dst = cv::Point2f(dst.x - tl.x, dst.y - tl.y);
+
+    Mat R2_t;
+    cv::invert(R2 ,R2_t);
+    cv::Point2f  dst2 = warper->warpPoint(dst, K2, R2_t);
+    cv::Point2f  t2 = cv::detail::resultRoi(corners2, sizes2).tl();
+    cv::Point2f final_pt = cv::Point2f(dst2.x + t2.x, dst.y + t2.y);
+
+    return final_pt;
+}
+
+
 int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<KeyPoint> &keyPts2, vector<DMatch> &GoodMatchePoints, int direction, int h_, int w_, double cutsize, int match_num)
 {
     result.mask.clear();
@@ -361,11 +387,66 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
         Mat camera0R = cameras[0].R;
         camera0R.convertTo(camera0R,CV_32FC1);
-
+        Mat camera0K = cameras[0].K();
+        camera0K.convertTo(camera0K,CV_32FC1);
         cout << "the t matrix is "<<cameras[0].t<<"\n";
         Mat ltOutput = Mat(outputPoint[0]).t() *camera_total;
         cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
 //        cout << "the t matrix is "<<Mat(outputPoint[0]).t()<<"\n";
+
+
+    Point2f ltOutput111 = calcWarpedPoint(
+            cv::Point2f(0,0),
+            camera0K,                // Camera K parameter
+            camera0R,                // Camera R parameter
+            ori_camera1_K,                // Camera K parameter
+            ori_camera1_R,                // Camera R parameter
+            warper,  // The Rotation Warper
+            corners,
+            sizes,
+            corners,
+            sizes);
+
+    Point2f rdOutput111 = calcWarpedPoint(
+            cv::Point2f(0,1920),
+            camera0K,                // Camera K parameter
+            camera0R,                // Camera R parameter
+            ori_camera1_K,                // Camera K parameter
+            ori_camera1_R,                // Camera R parameter
+            warper,  // The Rotation Warper
+            corners,
+            sizes,
+            corners,
+            sizes);
+
+    Point2f ldOutput111 = calcWarpedPoint(
+            cv::Point2f(1080,1920),
+            camera0K,                // Camera K parameter
+            camera0R,                // Camera R parameter
+            ori_camera1_K,                // Camera K parameter
+            ori_camera1_R,                // Camera R parameter
+            warper,  // The Rotation Warper
+            corners,
+            sizes,
+            corners,
+            sizes);
+    Point2f rtOutput111 = calcWarpedPoint(
+            cv::Point2f(1080,0),
+            camera0K,                // Camera K parameter
+            camera0R,                // Camera R parameter
+            ori_camera1_K,                // Camera K parameter
+            ori_camera1_R,                // Camera R parameter
+            warper,  // The Rotation Warper
+            corners,
+            sizes,
+            corners,
+            sizes);
+    cout<<"<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>\n";
+    cout<<"the new point is "<<ltOutput111<<"\n";
+    cout<<"the new point is "<<rdOutput111<<"\n";
+    cout<<"the new point is "<<ldOutput111<<"\n";
+    cout<<"the new point is "<<rtOutput111<<"\n";
+    cout<<"<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>\n";
         ltOutput = Mat(outputPoint[0]).t()  * invert_camera0_R * ori_camera1_R;
 //        float focal_x =  cameras[0].K().at<float>(0,0);
 //        float focal_y =  cameras[0].K().at<float>(1,1);
@@ -432,21 +513,21 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 //        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<";
 //        cout<<cameras[0].K()<<"\n";
 //        cout<<cameras[1].K()<<"\n";
-        result.corner = vector<Point2f>({Point2f(int(ltOutput.at<float>(0,0) + tl.x), int(ltOutput.at<float>(0,1)+ tl.y)), Point2f(int(ldOutput.at<float>(0,0)- tl.x), int(ldOutput.at<float>(0,1)+ tl.y)),
-                                        Point2f(int(rdOutput.at<float>(0,0)+ tl.x), int(rdOutput.at<float>(0,1)+ tl.y)), Point2f(int(rtOutput.at<float>(0,0)- tl.x), int(rtOutput.at<float>(0,1)+ tl.y))});
+        result.corner = vector<Point2f>({Point2f(int(ltOutput.at<float>(0,0) ), int(ltOutput.at<float>(0,1))), Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1))),
+                                        Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1))), Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)))});
 
 
 
         R = cameras[1].R.clone();
         Point root_points[1][4];
-    //    root_points[0][0] = Point(215,220);
-    //    root_points[0][1] = Point(460,225);
-    //    root_points[0][2] = Point(466,450);
-    //    root_points[0][3] = Point(235,465);
-        root_points[0][0] = Point2f(int(ltOutput.at<float>(0,0)+ tl.x), int(ltOutput.at<float>(0,1)+ tl.y));
-        root_points[0][1] = Point2f(int(ldOutput.at<float>(0,0)+ tl.x), int(ldOutput.at<float>(0,1)+ tl.y));
-        root_points[0][2] = Point2f(int(rdOutput.at<float>(0,0)+ tl.x), int(rdOutput.at<float>(0,1)+ tl.y));
-        root_points[0][3] = Point2f(int(rtOutput.at<float>(0,0)+ tl.x), int(rtOutput.at<float>(0,1)+ tl.y));
+        root_points[0][0] = ltOutput111;
+        root_points[0][1] = ldOutput111;
+        root_points[0][2] = rdOutput111;
+        root_points[0][3] = rtOutput111;
+//        root_points[0][0] = Point2f(int(ltOutput.at<float>(0,0)), int(ltOutput.at<float>(0,1)));
+//        root_points[0][1] = Point2f(int(ldOutput.at<float>(0,0)), int(ldOutput.at<float>(0,1)));
+//        root_points[0][2] = Point2f(int(rdOutput.at<float>(0,0)), int(rdOutput.at<float>(0,1)));
+//        root_points[0][3] = Point2f(int(rtOutput.at<float>(0,0)), int(rtOutput.at<float>(0,1)));
 
         const Point* ppt[1] = {root_points[0]};
         int npt[] = {4};
