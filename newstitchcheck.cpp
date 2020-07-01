@@ -115,8 +115,17 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     homo = findHomography(Mat(imagePoints1), Mat(imagePoints2), RANSAC, 7.0, mask,2000);
     //    Mat homo1 = getAffineTransform(imagePoints1, imagePoints2);
 //    cout<<homo1;
-
-
+//    homo = getPerspectiveTransform(Mat(imagePoints1), Mat(imagePoints2));
+    vector<Point2f> source_point, target_point;
+    for (size_t i = 0; i < mask.size(); i++) {
+        if (mask[i] != (uchar) 0) {
+//            lastmatchpoints.push_back(goodmatchpoints[i]);
+            source_point.push_back(imagePoints1[i]);
+            target_point.push_back(imagePoints2[i]);
+        }
+    }
+    homo = findHomography(Mat(source_point), Mat(target_point), RANSAC, 7.0, mask,2000);
+    cout << Mat(mask)<<"\n";
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
@@ -179,7 +188,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         vector<Point2d> source_point;
         vector<Point2d> target_point;
         for (size_t i = 0; i < matchePoints12.size(); i++) {
-            if (matchePoints12[i][0].distance < 0.6 * matchePoints12[i][1].distance) {
+            if (matchePoints12[i][0].distance < 0.4 * matchePoints12[i][1].distance) {
                 goodmatchpoints.push_back(matchePoints12[i][0]);
 
             }
@@ -197,6 +206,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
                 target_point.push_back(basedata.keypoints[goodmatchpoints[i].trainIdx].pt);
             }
         }
+
+//        hmdata.homo = findHomography(Mat(source_point), Mat(target_point), RANSAC, 7.0, hmdata.mask,2000);
         cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>";
         cout<<"the source point index is : "<< source_point.size()<<"\n";
         cout<<"the target point index is : "<< target_point.size()<<"\n";
@@ -204,10 +215,10 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 //        hmdata.homo = homography_dlt(source_point,target_point);
         float good_point_percentage = (float)lastmatchpoints.size() / (float)hmdata.mask.size();
 
-        Mat R,t;
-        cv::Mat K = (cv::Mat_<float>(3,3) <<  500.f,   0.f, image.cols / 2.f,
-                0.f, 500.f, image.rows / 2.f,
-                0.f,   0.f,               1.f);
+//        Mat R,t;
+//        cv::Mat K = (cv::Mat_<float>(3,3) <<  500.f,   0.f, image.cols / 2.f,
+//                0.f, 500.f, image.rows / 2.f,
+//                0.f,   0.f,               1.f);
 //        Mat Kd;
 //        K.convertTo(Kd, CV_64F);
 //        cv::recoverPose(hmdata.homo,
