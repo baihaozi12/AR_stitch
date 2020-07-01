@@ -224,43 +224,78 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 //
-//        vector<UMat> masks(2);
-//
-//        // Preapre images masks
-//        for (int i = 0; i < 2; ++i)
-//        {
-//            masks[i].create(image.size(), CV_8U);
-//            masks[i].setTo(Scalar::all(255));
-//        }
-//
-//        Ptr<WarperCreator> warper_creator = makePtr<cv::PlaneWarper>();
-//
-//
-//        Ptr<cv::detail::RotationWarper> warper = warper_creator->create(1);
-//
-//        //! Calculate warped corners/sizes/mask
-//        vector<Mat> images;
-//        images.push_back(checkdata.image);
-//        images.push_back(image);
-//        vector<Point> corners(2);
-//        vector<UMat> masks_warped(2);
-//        vector<UMat> images_warped(2);
-//        vector<Size> sizes(2);
-//        for (int i = 0; i < 2; ++i)
-//        {
-//            Mat_<float> K;
-//            cameras[i].K().convertTo(K, CV_32F);
-//            float swa = (float)1;
-//            K(0, 0) *= swa; K(0, 2) *= swa;
-//            K(1, 1) *= swa; K(1, 2) *= swa;
-//            corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
-//            sizes[i] = images_warped[i].size();
-//            warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]);
-//        }
+        vector<UMat> masks(2);
+
+        // Preapre images masks
+        for (int i = 0; i < 2; ++i)
+        {
+            masks[i].create(image.size(), CV_8U);
+            masks[i].setTo(Scalar::all(255));
+        }
+
+        Ptr<WarperCreator> warper_creator = makePtr<cv::PlaneWarper>();
+
+        vector<double> focals;
+        for (size_t i = 0; i < cameras.size(); ++i)
+        {
+            focals.push_back(cameras[i].focal);
+        }
+
+        sort(focals.begin(), focals.end());
+        float warped_image_scale;
+        if (focals.size() % 2 == 1)
+            warped_image_scale = static_cast<float>(focals[focals.size() / 2]);
+        else
+            warped_image_scale = static_cast<float>(focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5f;
+
+        Ptr<cv::detail::RotationWarper> warper = warper_creator->create(warped_image_scale);
+
+        //! Calculate warped corners/sizes/mask
+        vector<Mat> images;
+        images.push_back(checkdata.image);
+        images.push_back(image);
+        vector<Point> corners(2);
+        vector<UMat> masks_warped(2);
+        vector<UMat> images_warped(2);
+        vector<Size> sizes(2);
+        for (int i = 0; i < 2; ++i)
+        {
+            Mat_<float> K;
+            cameras[i].K().convertTo(K, CV_32F);
+            float swa = (float)1;
+            K(0, 0) *= swa; K(0, 2) *= swa;
+            K(1, 1) *= swa; K(1, 2) *= swa;
+            corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
+            sizes[i] = images_warped[i].size();
+            warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]);
+            if (i == 0){
+                imwrite("/home/baihao/jpg/warp121212.jpg",masks_warped[i]);
+            }
+
+        }
 
         cout<< cameras[0].K()<<"\n";
         cout<< cameras[0].R<<"\n";
 
+        std::vector<cv::Scalar> colors = { {255,0,0}, {0, 255, 0}, {0, 0, 255} };
+
+//            img = cv::imread(img_names[idx]);
+        Mat K;
+        cameras[1].K().convertTo(K, CV_32F);
+        Mat R = cameras[1].R;
+
+        //原图的中心点做测试
+        cv::Point2f  src_pt = cv::Point2f(image.cols/2 , image.rows /2);
+        cv::Point2f  dst_pt = warper->warpPoint(src_pt, K, R);
+        cv::Point2f  tl  = cv::detail::resultRoi(corners, sizes).tl();
+        cv::Point2f  pt = cv::Point2f(dst_pt.x - tl.x, dst_pt.y - tl.y);
+        //画个圆显示一下
+        cv::circle(image, dst_pt, 8, colors[0], 12, cv::LINE_AA);
+        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+
+        cout<<"The point is "<<pt<<"    \n";
+
+        cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
     cout<< cameras[1].ppx<<"\n";
     cout<< cameras[1].ppy<<"\n";
     cout<< cameras[1].aspect<<"\n";
@@ -402,7 +437,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
 
-        Mat R = cameras[1].R.clone();
+        R = cameras[1].R.clone();
         Point root_points[1][4];
     //    root_points[0][0] = Point(215,220);
     //    root_points[0][1] = Point(460,225);
