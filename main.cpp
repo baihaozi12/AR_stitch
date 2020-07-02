@@ -3,7 +3,7 @@
 #include <iostream>
 #include "newstitchcheck.h"
 #include<time.h>
-#include <Eigen/Core>
+//#include <Eigen/Core>
 
 using namespace cv;
 using namespace std;
@@ -11,13 +11,14 @@ using namespace std;
 
 int main()
 {
-    Mat im0 = imread("/home/baihao/jpg/1111111/xubo/yongqi.png", cv::COLOR_BGR2GRAY);
-    Mat im1 = imread("/home/baihao/jpg/1111111/xubo/yongqi2.png", cv::COLOR_BGR2GRAY);
+    Mat im0 = imread("/home/baihao/jpg/1111111/verti3/3_1.jpg", cv::COLOR_BGR2GRAY);
+    Mat im1 = imread("/home/baihao/jpg/1111111/verti3/3_2.jpg", cv::COLOR_BGR2GRAY);
 //    Eigen::Matrix<>
     if(! im0.data) {
         cout << "read image error" << endl;
     }
     featuredata *basedata = new featuredata();
+
     getfeaturedata(*basedata, im0, 1, 1, 0.5);
 
     clock_t start, finish;

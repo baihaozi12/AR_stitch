@@ -66,6 +66,7 @@ struct featuredata
     Mat descriptors;
     Mat image;
     cv::detail::ImageFeatures imageFeatures;
+    Mat full_image;
 };
 
 
