@@ -502,9 +502,9 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         }
 
         cv::Point2f p0 = cv::Point2f(0,0);
-        cv::Point2f p1 = cv::Point2f(img_sizes[0].first,0);
-        cv::Point2f p2 = cv::Point2f(img_sizes[0].first,img_sizes[0].second);
-        cv::Point2f p3 = cv::Point2f(0,img_sizes[0].second);
+        cv::Point2f p1 = cv::Point2f(1080,0);
+        cv::Point2f p2 = cv::Point2f(1080,1920);
+        cv::Point2f p3 = cv::Point2f(0,1920);
 
 
 
@@ -541,36 +541,36 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
 
-        std::cout << "***************************************" << std::endl;
-        Point root_points[1][4];
-        root_points[0][0] = p0_;
-        root_points[0][1] = p1_;
-        root_points[0][2] = p2_;
-        root_points[0][3] = p3_;
-
-        std::cout << p0_ << "\n";
-        std::cout << p1_ << "\n";
-        std::cout << p2_ << "\n";
-        std::cout << p3_ << "\n";
-
-
-        std::cout << p0 << "\n";
-        std::cout << p1 << "\n";
-        std::cout << p2 << "\n";
-        std::cout << p3 << "\n";
-
-        const Point* ppt[1] = {root_points[0]};
-        int npt[] = {4};
-
-
-        polylines(full_v2_image,  ppt, npt, 1, 1, Scalar(0,255,0),2,8,0);
-
-
-
-        std::cout << "***************************************" << std::endl;
-
-        std::cout << "\nCheck `result.png`, `result_mask.png` and `result2.png`!\n";
-        imwrite("/home/baihao/jpg/resultxubo.jpg", full_v2_image);
+//        std::cout << "***************************************" << std::endl;
+//        Point root_points[1][4];
+//        root_points[0][0] = p0_;
+//        root_points[0][1] = p1_;
+//        root_points[0][2] = p2_;
+//        root_points[0][3] = p3_;
+//
+//        std::cout << p0_ << "\n";
+//        std::cout << p1_ << "\n";
+//        std::cout << p2_ << "\n";
+//        std::cout << p3_ << "\n";
+//
+//
+//        std::cout << p0 << "\n";
+//        std::cout << p1 << "\n";
+//        std::cout << p2 << "\n";
+//        std::cout << p3 << "\n";
+//
+//        const Point* ppt[1] = {root_points[0]};
+//        int npt[] = {4};
+//
+//
+//        polylines(full_v2_image,  ppt, npt, 1, 1, Scalar(0,255,0),4,8,0);
+//
+//
+//
+//        std::cout << "***************************************" << std::endl;
+//
+//        std::cout << "\nCheck `result.png`, `result_mask.png` and `result2.png`!\n";
+//        imwrite("/home/baihao/jpg/resultxubo.jpg", full_v2_image);
 
         result.corner = vector<Point2f>({p0_, p1_,
                                          p2_, p3_});
