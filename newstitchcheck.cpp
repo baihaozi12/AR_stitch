@@ -12,7 +12,13 @@ float blend_strength = 5;
 double work_scale = 1, seam_scale = 1, compose_scale = 1;
 bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
 float seam_work_aspect = 1.0f;
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED //使用一个iOS肯定有的宏定义 来判断是否是iOS 或者 安卓
+Ptr<cv::xfeatures2d::SiftFeatureDetector> finder = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+#define WIDTH_MAX 800
+#else
 Ptr<Feature2D> finder = xfeatures2d::SURF::create(4000);
+#define WIDTH_MAX 700
+#endif
 // Ptr<Feature2D>  finder = ORB::create();
 class MyPoint
 {
@@ -316,7 +322,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
 
 
         work_scale = min(1.0, sqrt(work_megapix * 1e6 / image.size().area()));
-        work_scale = float(700)/float(image.rows);
+        work_scale = float(WIDTH_MAX)/float(image.rows);
         resize(image, image, Size(), work_scale, work_scale, 5);
 
         cv::detail::ImageFeatures image2Feature;
@@ -849,7 +855,7 @@ int getfeaturedata(featuredata &result, Mat &image, int direction, double cutsiz
 //        imwrite("/home/baihao/jpg/check.jpg",image);
 
 //        work_scale = min(1.0, sqrt(work_megapix * 1e6 / image.size().area()));
-        work_scale = float(700)/float(image.rows);
+        work_scale = float(WIDTH_MAX)/float(image.rows);
         result.full_image = image;
         resize(image, result.image, Size(), work_scale, work_scale, 5);
 
@@ -913,7 +919,11 @@ int get_keypoints_and_descriptors(featuredata &result, Mat &image)
         Mat *descriptors = new Mat();
 
 //        Ptr<Feature2D> f2d = xfeatures2d::SURF::create();
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED //使用一个iOS肯定有的宏定义 来判断是否是iOS 或者 安卓
+        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
+#else
         Ptr<Feature2D> f2d = xfeatures2d::SURF::create(1000);
+#endif
 //        Ptr<AKAZE> f2d = AKAZE::create();
 //        Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create();
         int step = 10;

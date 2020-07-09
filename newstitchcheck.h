@@ -35,7 +35,7 @@ struct stitch_status
 
 struct imagestatus
 {
-    int direction_status = 0;		//方向状态
+    int direction_status = 0;        //方向状态
     /*
     -1   异常
     0    没有拼接上
@@ -49,13 +49,13 @@ struct imagestatus
     210  向左下移动
     220  向右下移动
     */
-    double parallelslope = 0.0;		//基准图和待验图匹配点连线的水平斜率
-    double verticalslope = 0.0;		//基准图和待验图匹配点连线的垂直斜率
-    double alphaslope = 0.0;		//基准图和待验图匹配点连线的alpha斜率
-    double betaslope = 0.0;			//基准图和待验图匹配点连线的beta斜率
-    double density1 = 0;			//基准图匹配点的密度 图1
-    double density2 = 0;			//待验图匹配点的密度 图2
-    int matchnumber = 0;			//匹配点个数
+    double parallelslope = 0.0;        //基准图和待验图匹配点连线的水平斜率
+    double verticalslope = 0.0;        //基准图和待验图匹配点连线的垂直斜率
+    double alphaslope = 0.0;        //基准图和待验图匹配点连线的alpha斜率
+    double betaslope = 0.0;            //基准图和待验图匹配点连线的beta斜率
+    double density1 = 0;            //基准图匹配点的密度 图1
+    double density2 = 0;            //待验图匹配点的密度 图2
+    int matchnumber = 0;            //匹配点个数
     Mat homo = (Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
 };
 
@@ -255,7 +255,7 @@ cv::Point2f calcWarpedPoint(
         InputArray R1,                // Camera R parameter
         InputArray K2,                // Camera K parameter
         InputArray R2,                // Camera R parameter
-        Ptr<cv::detail::RotationWarper> warper,  // The Rotation Warper
+        cv::Ptr<cv::detail::RotationWarper> warper,  // The Rotation Warper
         Point_<int> corners1,
         Size_<int> sizes1,
         const std::vector<cv::Point> &corners2,
