@@ -342,13 +342,14 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         vector<cv::detail::ImageFeatures> features;
         features.push_back(basedata.imageFeatures);
         features.push_back(image2Feature);
-        // (3) 创建图像特征匹配器，计算匹配信息
 
+        //! match creator match image features
         vector<cv::detail::MatchesInfo> pairwise_matches;
         Ptr<cv::detail::FeaturesMatcher>  matcher = makePtr<cv::detail::BestOf2NearestMatcher>(false, match_conf);
         (*matcher)(features, pairwise_matches);
         matcher->collectGarbage();
 
+        //! resize
         vector<Mat> images(2);
         resize(basedata.image, images[0], Size(), seam_scale, seam_scale, 5);
         resize(image, images[1], Size(), seam_scale, seam_scale, 5);
@@ -356,7 +357,13 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         // Leave only images we are sure are from the same panorama
         vector<int> indices = leaveBiggestComponent(features, pairwise_matches, conf_thresh);
         vector<Mat> img_subset;
-    //    vector<String> img_names_subset;
+        cout<< "num of inliers is : "<<pairwise_matches[1].num_inliers<<"\n";
+
+
+        //! 匹配点的数量小于50
+        if(pairwise_matches[1].num_inliers < 50){
+            result.direction_status = 1;
+        }
         vector<Size> full_img_sizes_subset;
         for (size_t i = 0; i < indices.size(); ++i)
         {
@@ -374,6 +381,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         int num_images = static_cast<int>(img_subset.size());
         if (num_images < 2)
         {
+            result.direction_status = 0;
             std::cout << "Need more images\n";
             return -1;
         }
@@ -386,6 +394,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             cout << "Homography estimation failed.\n";
             return 0;
         }
+
 
         for (size_t i = 0; i < cameras.size(); ++i)
         {
@@ -411,6 +420,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         adjuster->setRefinementMask(refine_mask);
         if (!(*adjuster)(features, pairwise_matches, cameras))
         {
+
             cout << "Camera parameters adjusting failed.\n";
             return -1;
         }
@@ -566,7 +576,11 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
                                          p2_, p3_});
 
         result.direction_status = 2;
-
+        if(pairwise_matches[1].num_inliers < 50){
+            result.direction_status = 1 + pairwise_matches[1].num_inliers*10;
+        }else{
+            result.direction_status = 2 + pairwise_matches[1].num_inliers*10;
+        }
         result.homo = refine_mask;
         return 0;
     } catch (...) {
