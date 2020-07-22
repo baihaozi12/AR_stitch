@@ -13,6 +13,7 @@ bool isHorizontail_Global = false;
 
 store_each *all_param = new store_each();
 featuredata temp;
+jint previous[9];
 // store_each all_param_result;
 extern "C" {
 jintArray matToBitmapArray(JNIEnv *env, const cv::Mat &image) {
@@ -310,7 +311,26 @@ Java_com_trax_jcall_AlgorithmNativeCarrier_checkimage(JNIEnv *env,
             p[count++] = (jint)pt.x;
             p[count++] = (jint)pt.y;
         }
+        if(p[0] != 2){
+            if(previous[0] == 2){
+                for(int i = 0;i < 9;i++ ){
+                    p[i] = previous[i];
+                }
+
+                previous[0] = 0;
+            }else{
+                for(int i = 0;i < 9;i++ ){
+                    previous[i] = p[i];
+                }
+            }
+        }else{
+            for(int i = 0;i < 9;i++ ){
+                previous[i] = p[i];
+            }
+        }
         env->SetIntArrayRegion(kk, 0, 9, p);
+
+
         delete result;
 
         //delete []p;
