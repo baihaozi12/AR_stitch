@@ -1274,3 +1274,38 @@ void triangulation(Mat R, Mat t){
 
 
 }
+
+stitch_status *previous_status;
+
+int check_image_for_IOS(stitch_status &result, featuredata& basedata, Mat& image, int direction, double cutsize, double compression_ratio, int match_num1, int match_num2, double threshold1, double threshold2, int rows, int cols) {
+    stitch_status *current_result = new stitch_status();
+    check_image_v2(*current_result,basedata,image,direction,cutsize,compression_ratio,match_num1,match_num2,threshold1,threshold2);
+
+    if (current_result->direction_status != 2){
+        if (previous_status->direction_status ==2){
+            for (int i =0 ;i<  previous_status->corner.size(); i++ ){
+                current_result->corner[i] = previous_status->corner[i];
+            }
+
+        }
+    }
+    previous_status->direction_status = current_result->direction_status;
+    result.corner = current_result->corner;
+    result.direction_status=current_result->direction_status;
+
+    float x_scale = float(1080.0)/float(cols);
+    float y_scale = float(1920.0)/float(rows);
+    for (int i =0 ;i<  current_result->corner.size(); i++ ){
+        previous_status->corner[i] = current_result->corner[i];
+
+
+        result.corner[i].x =result.corner[i].x*x_scale;
+        result.corner[i].y =result.corner[i].y*y_scale;
+
+    }
+
+
+
+}
+
+
