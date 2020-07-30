@@ -109,7 +109,7 @@ int gethomoandmask_v3(homoandmask &result, vector<KeyPoint> &keyPts1, vector<Key
     vector<uchar> mask;
     Mat homo = (Mat_<double>(2, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-    homo = findHomography(imagePoints1, imagePoints2, RHO, 5.0, mask,3000);
+    homo = findHomography(imagePoints1, imagePoints2, RANSAC, 3.5, mask,1500);
     if (!homo.empty() && homo.rows == 3 && homo.cols == 3) {
         result.homo = homo;
     }
@@ -137,18 +137,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         
         Ptr<cv::xfeatures2d::SiftFeatureDetector> f2d = cv::xfeatures2d::SiftFeatureDetector::create(1000);
 
-        int step = 10;
-//        vector<KeyPoint> kps;
-        for (int i=step; i<image.rows-step; i+=step)
-        {
-            for (int j=step; j<image.cols-step; j+=step)
-            {
-                // x,y,radius
-//                kps.push_back(KeyPoint(float(j), float(i), float(step)));
-//                keypoints.push_back(KeyPoint(int(j), int(i), int(step)))
-                keypoints.push_back(KeyPoint(float(j), float(i), float(step)));
-            }
-        }
+
 
         LoadImage(checkdata.image, image, direction, cutsize, compression_ratio);
         f2d->detectAndCompute(checkdata.image, noArray(), checkdata.keypoints, checkdata.descriptors);
@@ -156,8 +145,8 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
             return 0;
         }
 
-//        BFMatcher matcher;
-        FlannBasedMatcher matcher;
+        BFMatcher matcher;
+//        FlannBasedMatcher matcher;
 
         vector<vector<DMatch>> matchePoints12;
         vector<DMatch> goodmatchpoints;
@@ -166,7 +155,7 @@ int check_image_v2(stitch_status &result, featuredata& basedata, Mat& image, int
         }
         matcher.knnMatch(basedata.descriptors, checkdata.descriptors, matchePoints12, 2);
         for (size_t i = 0; i < matchePoints12.size(); i++) {
-            if (matchePoints12[i][0].distance < 0.75 * matchePoints12[i][1].distance) {
+            if (matchePoints12[i][0].distance < 0.6 * matchePoints12[i][1].distance) {
                 goodmatchpoints.push_back(matchePoints12[i][0]);
             }
         }
